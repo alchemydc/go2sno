@@ -11,6 +11,8 @@ import { ThemeToggle } from './ThemeToggle';
 export const Dashboard: React.FC = () => {
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
     const [destination, setDestination] = useState('leadville');
+    const [from, setFrom] = useState('boulder');
+    const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
 
     useEffect(() => {
         // Get coordinates for selected destination
@@ -38,7 +40,13 @@ export const Dashboard: React.FC = () => {
 
                 {/* Main Column: Route & Cameras */}
                 <div style={{ gridColumn: 'span 2' }}>
-                    <RoutePlanner destination={destination} onDestinationChange={setDestination} />
+                    <RoutePlanner
+                        destination={destination}
+                        onDestinationChange={setDestination}
+                        from={from}
+                        onFromChange={setFrom}
+                        onRouteUpdate={setRouteGeoJSON}
+                    />
 
                     <CameraGrid />
                 </div>
@@ -63,7 +71,7 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <IncidentsCard />
+                        <IncidentsCard routeGeoJSON={routeGeoJSON} />
                     </div>
 
                     <ResortList />

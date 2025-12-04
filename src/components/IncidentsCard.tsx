@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Construction } from 'lucide-react';
+import { AlertTriangle, Construction, Loader2 } from 'lucide-react';
 import { getIncidents, getRoadConditions, Incident, RoadCondition } from '../services/cdot';
+import pointToLineDistance from '@turf/point-to-line-distance';
+import { point, lineString } from '@turf/helpers';
 
-export const IncidentsCard: React.FC = () => {
+interface IncidentsCardProps {
+    routeGeoJSON?: any;
+}
+
+export const IncidentsCard: React.FC<IncidentsCardProps> = ({ routeGeoJSON }) => {
+    const [allIncidents, setAllIncidents] = useState<Incident[]>([]);
+    const [allConditions, setAllConditions] = useState<RoadCondition[]>([]);
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [conditions, setConditions] = useState<RoadCondition[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Fetch all data once on mount
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -14,8 +23,8 @@ export const IncidentsCard: React.FC = () => {
                     getIncidents(),
                     getRoadConditions()
                 ]);
-                setIncidents(incidentsData);
-                setConditions(conditionsData);
+                setAllIncidents(incidentsData);
+                setAllConditions(conditionsData);
             } catch (error) {
                 console.error('Error loading alerts:', error);
             } finally {
@@ -26,8 +35,53 @@ export const IncidentsCard: React.FC = () => {
         fetchData();
     }, []);
 
+    // Filter data when route or data changes
+    useEffect(() => {
+        if (loading) return;
+
+        if (routeGeoJSON && routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates) {
+            const routeLine = lineString(routeGeoJSON.geometry.coordinates);
+            console.log('Filtering alerts for new route. Points:', routeGeoJSON.geometry.coordinates.length);
+            const MAX_DISTANCE_MILES = 1;
+
+            const filteredIncidents = allIncidents.filter(incident => {
+                let coords: number[];
+                if (incident.geometry.type === 'MultiPoint') {
+                    coords = (incident.geometry.coordinates as number[][])[0];
+                } else if (incident.geometry.type === 'Point') {
+                    coords = incident.geometry.coordinates as number[];
+                } else {
+                    return false; // Skip unknown geometries
+                }
+
+                const pt = point(coords);
+                const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
+                // console.log(`Incident ${incident.properties.type} distance: ${distance} miles`);
+                return distance <= MAX_DISTANCE_MILES;
+            });
+
+            const filteredConditions = allConditions.filter(condition => {
+                const pt = point([condition.properties.primaryLongitude, condition.properties.primaryLatitude]);
+                const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
+                return distance <= MAX_DISTANCE_MILES;
+            });
+
+            setIncidents(filteredIncidents);
+            setConditions(filteredConditions);
+        } else {
+            // If no route selected, show all (or maybe none? showing all for now as fallback)
+            setIncidents(allIncidents);
+            setConditions(allConditions);
+        }
+    }, [routeGeoJSON, allIncidents, allConditions, loading]);
+
     if (loading) {
-        return <div className="card">Loading alerts...</div>;
+        return (
+            <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <Loader2 className="animate-spin" size={32} color="var(--color-primary)" />
+                <span style={{ marginLeft: '0.5rem', color: '#6b7280' }}>Loading alerts...</span>
+            </div>
+        );
     }
 
     if (incidents.length === 0 && conditions.length === 0) {

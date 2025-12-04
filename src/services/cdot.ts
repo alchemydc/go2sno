@@ -14,13 +14,16 @@ export interface TrafficSegment {
 export interface Incident {
   id: string;
   type: string;
+  geometry: {
+    type: string;
+    coordinates: number[] | number[][];
+  };
   properties: {
     type: string;
     startTime: string;
     travelerInformationMessage: string;
     routeName: string;
-    primaryLatitude: number;
-    primaryLongitude: number;
+    // primaryLatitude and primaryLongitude are often missing in API
   };
 }
 

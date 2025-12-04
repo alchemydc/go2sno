@@ -25,12 +25,21 @@ export const locations: Record<string, string> = {
 interface RoutePlannerProps {
     destination: string;
     onDestinationChange: (destination: string) => void;
+    from: string;
+    onFromChange: (from: string) => void;
+    onRouteUpdate: (geojson: any) => void;
 }
 
-export const RoutePlanner: React.FC<RoutePlannerProps> = ({ destination, onDestinationChange }) => {
+export const RoutePlanner: React.FC<RoutePlannerProps> = ({
+    destination,
+    onDestinationChange,
+    from,
+    onFromChange,
+    onRouteUpdate
+}) => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<maplibregl.Map | null>(null);
-    const [from, setFrom] = useState('boulder');
+    // from is now controlled by parent
     // destination is now controlled by parent
     const [stats, setStats] = useState<RouteStats>({
         travelTime: 'Loading...',
@@ -75,6 +84,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({ destination, onDesti
                         }
                     };
                     setRouteGeoJSON(geojson);
+                    onRouteUpdate(geojson);
                 }
             } catch (error) {
                 console.error('Failed to fetch route stats:', error);
@@ -187,7 +197,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({ destination, onDesti
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>From</label>
                     <select
                         value={from}
-                        onChange={(e) => setFrom(e.target.value)}
+                        onChange={(e) => onFromChange(e.target.value)}
                         style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
                     >
                         <option value="boulder" disabled={destination === 'boulder'}>Boulder</option>
