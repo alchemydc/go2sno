@@ -22,7 +22,12 @@ export const locations: Record<string, string> = {
     leadville: '39.2508,-106.2925',
     silverton: '37.8119,-107.6639',
     wolfcreek: '37.3869,-106.8830',
-    crestedbutte: '38.8697,-106.9878'
+    crestedbutte: '38.8697,-106.9878',
+    aspen: '39.1911,-106.8175',
+    telluride: '37.9375,-107.8123',
+    beavercreek: '39.6042,-106.5165',
+    monarch: '38.5458,-106.3258',
+    arapahoebasin: '39.6425,-105.8719'
 };
 
 import { Incident, RoadCondition } from '../services/cdot';
@@ -213,7 +218,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             const conditionsSource = map.current.getSource('conditions') as maplibregl.GeoJSONSource;
             console.log('RoutePlanner: Conditions source exists?', !!conditionsSource);
             console.log('RoutePlanner: Conditions GeoJSON features count:', conditionsGeoJSON.features.length);
-            
+
             if (conditionsSource) {
                 console.log('RoutePlanner: Updating conditions source data with', conditionsGeoJSON.features.length, 'features');
                 conditionsSource.setData(conditionsGeoJSON);
@@ -240,7 +245,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
         // Always update layers when dependencies change, but ensure map is ready
         const executeUpdate = () => {
             if (!map.current) return;
-            
+
             if (map.current.isStyleLoaded()) {
                 console.log('RoutePlanner: Style is loaded, calling updateLayers immediately');
                 updateLayers();
@@ -254,12 +259,12 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         updateLayers();
                     }
                 }, 50);
-                
+
                 // Cleanup after 5 seconds to prevent infinite loop
                 setTimeout(() => clearInterval(checkStyle), 5000);
             }
         };
-        
+
         executeUpdate();
 
     }, [routeGeoJSON, incidents, conditions]);
@@ -427,6 +432,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         <option value="silverton" disabled={destination === 'silverton'}>Silverton</option>
                         <option value="wolfcreek" disabled={destination === 'wolfcreek'}>Wolf Creek</option>
                         <option value="crestedbutte" disabled={destination === 'crestedbutte'}>Crested Butte</option>
+                        <option value="aspen" disabled={destination === 'aspen'}>Aspen</option>
+                        <option value="telluride" disabled={destination === 'telluride'}>Telluride</option>
+                        <option value="beavercreek" disabled={destination === 'beavercreek'}>Beaver Creek</option>
+                        <option value="monarch" disabled={destination === 'monarch'}>Monarch</option>
+                        <option value="arapahoebasin" disabled={destination === 'arapahoebasin'}>Arapahoe Basin</option>
                     </select>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -444,6 +454,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         <option value="crestedbutte" disabled={from === 'crestedbutte'}>Crested Butte</option>
                         <option value="leadville" disabled={from === 'leadville'}>Leadville</option>
                         <option value="boulder" disabled={from === 'boulder'}>Boulder</option>
+                        <option value="aspen" disabled={from === 'aspen'}>Aspen</option>
+                        <option value="telluride" disabled={from === 'telluride'}>Telluride</option>
+                        <option value="beavercreek" disabled={from === 'beavercreek'}>Beaver Creek</option>
+                        <option value="monarch" disabled={from === 'monarch'}>Monarch</option>
+                        <option value="arapahoebasin" disabled={from === 'arapahoebasin'}>Arapahoe Basin</option>
                     </select>
                 </div>
             </div>
