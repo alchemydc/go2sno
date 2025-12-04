@@ -19,8 +19,13 @@ export const locations: Record<string, string> = {
     frisco: '39.5744,-106.0975',
     vail: '39.6403,-106.3742',
     winterpark: '39.8917,-105.7631',
-    leadville: '39.2508,-106.2925'
+    leadville: '39.2508,-106.2925',
+    silverton: '37.8119,-107.6639',
+    wolfcreek: '37.3869,-106.8830',
+    crestedbutte: '38.8697,-106.9878'
 };
+
+import { Incident, RoadCondition } from '../services/cdot';
 
 interface RoutePlannerProps {
     destination: string;
@@ -28,6 +33,8 @@ interface RoutePlannerProps {
     from: string;
     onFromChange: (from: string) => void;
     onRouteUpdate: (geojson: any) => void;
+    incidents?: Incident[];
+    conditions?: RoadCondition[];
 }
 
 export const RoutePlanner: React.FC<RoutePlannerProps> = ({
@@ -35,7 +42,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     onDestinationChange,
     from,
     onFromChange,
-    onRouteUpdate
+    onRouteUpdate,
+    incidents = [],
+    conditions = []
 }) => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<maplibregl.Map | null>(null);
@@ -95,62 +104,246 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
         fetchStats();
     }, [from, destination]);
 
-    // Update map with route
+    // Update map with route and alerts
     useEffect(() => {
-        if (!map.current || !routeGeoJSON) return;
+        if (!map.current) return;
 
-        const source = map.current.getSource('route') as maplibregl.GeoJSONSource;
-        if (source) {
-            source.setData(routeGeoJSON);
-        } else {
-            // Wait for style to load if needed, but usually safe if map exists
-            if (map.current.isStyleLoaded()) {
-                addRouteLayer();
-            } else {
-                map.current.once('load', addRouteLayer);
-            }
-        }
+        console.log('RoutePlanner: Effect triggered');
+        console.log('RoutePlanner: Incidents count:', incidents.length);
+        console.log('RoutePlanner: Conditions count:', conditions.length);
 
-        function addRouteLayer() {
-            if (!map.current || map.current.getSource('route')) return;
+        const updateLayers = () => {
+            if (!map.current) return;
+            // @ts-ignore
+            console.log(`RoutePlanner: Updating layers for map instance ${map.current._id}`);
 
-            map.current.addSource('route', {
-                type: 'geojson',
-                data: routeGeoJSON
-            });
-
-            map.current.addLayer({
-                id: 'route',
-                type: 'line',
-                source: 'route',
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                paint: {
-                    'line-color': '#2563eb',
-                    'line-width': 5,
-                    'line-opacity': 0.8
+            // Route Layer
+            if (routeGeoJSON) {
+                const source = map.current.getSource('route') as maplibregl.GeoJSONSource;
+                if (source) {
+                    source.setData(routeGeoJSON);
+                } else {
+                    map.current.addSource('route', {
+                        type: 'geojson',
+                        data: routeGeoJSON
+                    });
+                    map.current.addLayer({
+                        id: 'route',
+                        type: 'line',
+                        source: 'route',
+                        layout: {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        paint: {
+                            'line-color': '#2563eb',
+                            'line-width': 5,
+                            'line-opacity': 0.8
+                        }
+                    });
                 }
-            });
+
+                // Fit bounds
+                const coordinates = routeGeoJSON.geometry.coordinates;
+                const bounds = coordinates.reduce((bounds: maplibregl.LngLatBounds, coord: [number, number]) => {
+                    return bounds.extend(coord as [number, number]);
+                }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                map.current.fitBounds(bounds, {
+                    padding: 50
+                });
+            }
+
+            // Incidents Layer
+            const incidentsGeoJSON: any = {
+                type: 'FeatureCollection',
+                features: incidents.map(incident => ({
+                    type: 'Feature',
+                    geometry: incident.geometry,
+                    properties: {
+                        type: incident.properties.type || 'Incident',
+                        description: incident.properties.travelerInformationMessage || incident.properties.type || 'Road incident reported'
+                    }
+                }))
+            };
+
+            const incidentsSource = map.current.getSource('incidents') as maplibregl.GeoJSONSource;
+            console.log('RoutePlanner: Incidents source exists?', !!incidentsSource);
+
+            if (incidentsSource) {
+                console.log('RoutePlanner: Updating incidents source data');
+                incidentsSource.setData(incidentsGeoJSON);
+            } else {
+                console.log('RoutePlanner: Adding incidents source and layer');
+                map.current.addSource('incidents', {
+                    type: 'geojson',
+                    data: incidentsGeoJSON
+                });
+                map.current.addLayer({
+                    id: 'incidents',
+                    type: 'circle',
+                    source: 'incidents',
+                    paint: {
+                        'circle-radius': 6,
+                        'circle-color': '#ef4444', // Red
+                        'circle-stroke-width': 1,
+                        'circle-stroke-color': '#ffffff'
+                    }
+                });
+            }
+
+            // Conditions Layer
+            const conditionsGeoJSON: any = {
+                type: 'FeatureCollection',
+                features: conditions.map(condition => ({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [condition.properties.primaryLongitude, condition.properties.primaryLatitude]
+                    },
+                    properties: {
+                        description: condition.properties.currentConditions?.map(c => c.conditionDescription).join(', ') ||
+                            condition.properties.routeName ||
+                            'Road condition reported'
+                    }
+                }))
+            };
+
+            const conditionsSource = map.current.getSource('conditions') as maplibregl.GeoJSONSource;
+            if (conditionsSource) {
+                conditionsSource.setData(conditionsGeoJSON);
+            } else {
+                map.current.addSource('conditions', {
+                    type: 'geojson',
+                    data: conditionsGeoJSON
+                });
+                map.current.addLayer({
+                    id: 'conditions',
+                    type: 'circle',
+                    source: 'conditions',
+                    paint: {
+                        'circle-radius': 5,
+                        'circle-color': '#f59e0b', // Orange
+                        'circle-stroke-width': 1,
+                        'circle-stroke-color': '#ffffff'
+                    }
+                });
+            }
+        };
+
+        if (map.current.isStyleLoaded()) {
+            updateLayers();
+        } else {
+            map.current.once('load', updateLayers);
         }
 
-        // Fit bounds
-        const coordinates = routeGeoJSON.geometry.coordinates;
-        const bounds = coordinates.reduce((bounds: maplibregl.LngLatBounds, coord: [number, number]) => {
-            return bounds.extend(coord as [number, number]);
-        }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+    }, [routeGeoJSON, incidents, conditions]);
 
-        map.current.fitBounds(bounds, {
-            padding: 50
-        });
+    // Separate effect for hover interactions to ensure layers exist
+    useEffect(() => {
+        if (!map.current) return;
 
-    }, [routeGeoJSON]);
+        // Wait for layers to be ready
+        const addHoverInteractions = () => {
+            if (!map.current) return;
+
+            // Check if layers exist before adding listeners
+            if (!map.current.getLayer('incidents') && !map.current.getLayer('conditions')) {
+                return;
+            }
+
+            const popup = new maplibregl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            const showPopup = (e: any) => {
+                if (!e.features || e.features.length === 0) return;
+
+                map.current!.getCanvas().style.cursor = 'pointer';
+
+                const feature = e.features[0];
+                let coordinates = feature.geometry.coordinates.slice();
+
+                // Get description from properties
+                let description = 'No information available';
+
+                if (feature.properties) {
+                    const desc = feature.properties.description;
+                    const type = feature.properties.type;
+
+                    // Check if description exists and is not "undefined" or "null" string
+                    if (desc && desc !== 'undefined' && desc !== 'null' && desc.trim() !== '') {
+                        description = desc;
+                    } else if (type && type !== 'undefined' && type !== 'null' && type.trim() !== '') {
+                        description = type;
+                    }
+                }
+
+                // Handle MultiPoint: coordinates will be [[lon, lat], [lon, lat]]
+                // We need [lon, lat] for setLngLat
+                if (Array.isArray(coordinates[0])) {
+                    coordinates = coordinates[0];
+                }
+
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+
+                popup.setLngLat(coordinates).setHTML(`<div style="max-width: 200px; padding: 4px;">${description}</div>`).addTo(map.current!);
+            };
+
+            const hidePopup = () => {
+                map.current!.getCanvas().style.cursor = '';
+                popup.remove();
+            };
+
+            // Remove existing listeners if any
+            map.current.off('mouseenter', 'incidents', showPopup);
+            map.current.off('mouseleave', 'incidents', hidePopup);
+            map.current.off('mouseenter', 'conditions', showPopup);
+            map.current.off('mouseleave', 'conditions', hidePopup);
+
+            // Add new listeners
+            if (map.current.getLayer('incidents')) {
+                map.current.on('mouseenter', 'incidents', showPopup);
+                map.current.on('mouseleave', 'incidents', hidePopup);
+            }
+
+            if (map.current.getLayer('conditions')) {
+                map.current.on('mouseenter', 'conditions', showPopup);
+                map.current.on('mouseleave', 'conditions', hidePopup);
+            }
+
+            return () => {
+                if (map.current) {
+                    map.current.off('mouseenter', 'incidents', showPopup);
+                    map.current.off('mouseleave', 'incidents', hidePopup);
+                    map.current.off('mouseenter', 'conditions', showPopup);
+                    map.current.off('mouseleave', 'conditions', hidePopup);
+                    popup.remove();
+                }
+            };
+        };
+
+        // Small delay to ensure layers are fully added
+        const timeoutId = setTimeout(addHoverInteractions, 100);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [incidents, conditions]);
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
 
         if (mapContainer.current) {
+            const mapId = Math.random().toString(36).substring(7);
+            console.log(`RoutePlanner: Initializing map instance ${mapId}`);
+
             map.current = new maplibregl.Map({
                 container: mapContainer.current,
                 style: {
@@ -176,6 +369,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 center: [-105.6, 39.7], // Center roughly between Denver and Frisco
                 zoom: 8
             });
+
+            // @ts-ignore
+            map.current._id = mapId;
 
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
@@ -203,6 +399,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         <option value="boulder" disabled={destination === 'boulder'}>Boulder</option>
                         <option value="denver" disabled={destination === 'denver'}>Denver</option>
                         <option value="leadville" disabled={destination === 'leadville'}>Leadville</option>
+                        <option value="silverton" disabled={destination === 'silverton'}>Silverton</option>
+                        <option value="wolfcreek" disabled={destination === 'wolfcreek'}>Wolf Creek</option>
+                        <option value="crestedbutte" disabled={destination === 'crestedbutte'}>Crested Butte</option>
                     </select>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -215,6 +414,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         <option value="frisco" disabled={from === 'frisco'}>Frisco</option>
                         <option value="vail" disabled={from === 'vail'}>Vail</option>
                         <option value="winterpark" disabled={from === 'winterpark'}>Winter Park</option>
+                        <option value="silverton" disabled={from === 'silverton'}>Silverton</option>
+                        <option value="wolfcreek" disabled={from === 'wolfcreek'}>Wolf Creek</option>
+                        <option value="crestedbutte" disabled={from === 'crestedbutte'}>Crested Butte</option>
                         <option value="leadville" disabled={from === 'leadville'}>Leadville</option>
                         <option value="boulder" disabled={from === 'boulder'}>Boulder</option>
                     </select>

@@ -7,12 +7,21 @@ import { getWeather } from '../services/weather';
 import type { WeatherForecast } from '../services/weather';
 import { CloudSun } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { getIncidents, getRoadConditions, Incident, RoadCondition } from '../services/cdot';
+import pointToLineDistance from '@turf/point-to-line-distance';
+import { point, lineString } from '@turf/helpers';
 
 export const Dashboard: React.FC = () => {
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
     const [destination, setDestination] = useState('leadville');
     const [from, setFrom] = useState('boulder');
     const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
+
+    const [allIncidents, setAllIncidents] = useState<Incident[]>([]);
+    const [allConditions, setAllConditions] = useState<RoadCondition[]>([]);
+    const [incidents, setIncidents] = useState<Incident[]>([]);
+    const [conditions, setConditions] = useState<RoadCondition[]>([]);
+    const [loadingAlerts, setLoadingAlerts] = useState(true);
 
     useEffect(() => {
         // Get coordinates for selected destination
@@ -22,6 +31,63 @@ export const Dashboard: React.FC = () => {
             getWeather(lat, lon).then(setWeather);
         }
     }, [destination]);
+
+    // Fetch all alerts once on mount
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [incidentsData, conditionsData] = await Promise.all([
+                    getIncidents(),
+                    getRoadConditions()
+                ]);
+                setAllIncidents(incidentsData);
+                setAllConditions(conditionsData);
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            } finally {
+                setLoadingAlerts(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Filter alerts when route or data changes
+    useEffect(() => {
+        if (loadingAlerts) return;
+
+        if (routeGeoJSON && routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates) {
+            const routeLine = lineString(routeGeoJSON.geometry.coordinates);
+            const MAX_DISTANCE_MILES = 1;
+
+            const filteredIncidents = allIncidents.filter(incident => {
+                let coords: number[];
+                if (incident.geometry.type === 'MultiPoint') {
+                    coords = (incident.geometry.coordinates as number[][])[0];
+                } else if (incident.geometry.type === 'Point') {
+                    coords = incident.geometry.coordinates as number[];
+                } else {
+                    return false;
+                }
+
+                const pt = point(coords);
+                const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
+                return distance <= MAX_DISTANCE_MILES;
+            });
+
+            const filteredConditions = allConditions.filter(condition => {
+                const pt = point([condition.properties.primaryLongitude, condition.properties.primaryLatitude]);
+                const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
+                return distance <= MAX_DISTANCE_MILES;
+            });
+
+            setIncidents(filteredIncidents);
+            setConditions(filteredConditions);
+        } else {
+            setIncidents(allIncidents);
+            setConditions(allConditions);
+        }
+    }, [routeGeoJSON, allIncidents, allConditions, loadingAlerts]);
 
     // Format destination name for display (capitalize first letter)
     const destinationName = destination.charAt(0).toUpperCase() + destination.slice(1);
@@ -46,6 +112,8 @@ export const Dashboard: React.FC = () => {
                         from={from}
                         onFromChange={setFrom}
                         onRouteUpdate={setRouteGeoJSON}
+                        incidents={incidents}
+                        conditions={conditions}
                     />
 
                     <CameraGrid />
@@ -71,13 +139,18 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <IncidentsCard routeGeoJSON={routeGeoJSON} />
+                        <IncidentsCard
+                            incidents={incidents}
+                            conditions={conditions}
+                            loading={loadingAlerts}
+                        />
                     </div>
 
                     <ResortList />
                 </div>
 
             </div>
+
         </div>
     );
 };

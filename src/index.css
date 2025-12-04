@@ -78,6 +78,7 @@ body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -85,4 +86,9 @@ body {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+.maplibregl-popup-content {
+  color: #1f2937 !important;
+  /* Force dark text for popups */
 }
