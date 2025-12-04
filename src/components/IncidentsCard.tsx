@@ -67,7 +67,7 @@ export const IncidentsCard: React.FC = () => {
                             <span style={{ fontWeight: 600 }}>{condition.properties.routeName}</span>
                         </div>
                         {condition.properties.currentConditions.map((cond, idx) => (
-                            <div key={idx} style={{ fontSize: '0.875rem', color: '#4b5563' }}>
+                            <div key={`${condition.id}-cond-${idx}`} style={{ fontSize: '0.875rem', color: '#4b5563' }}>
                                 {cond.conditionDescription}
                             </div>
                         ))}
