@@ -1,4 +1,4 @@
-import { CaicClient } from './src/services/caic/client';
+import { CaicClient } from '../src/services/caic/client';
 
 async function main() {
     // Get zone data

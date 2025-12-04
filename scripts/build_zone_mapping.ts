@@ -1,4 +1,4 @@
-import { CaicClient } from './src/services/caic/client';
+import { CaicClient } from '../src/services/caic/client';
 
 // Zone IDs we know from the zones API
 const KNOWN_ZONES = {
