@@ -169,9 +169,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
             const incidentsSource = map.current.getSource('incidents') as maplibregl.GeoJSONSource;
             console.log('RoutePlanner: Incidents source exists?', !!incidentsSource);
+            console.log('RoutePlanner: Incidents GeoJSON features count:', incidentsGeoJSON.features.length);
 
             if (incidentsSource) {
-                console.log('RoutePlanner: Updating incidents source data');
+                console.log('RoutePlanner: Updating incidents source data with', incidentsGeoJSON.features.length, 'features');
                 incidentsSource.setData(incidentsGeoJSON);
             } else {
                 console.log('RoutePlanner: Adding incidents source and layer');
@@ -210,9 +211,14 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             };
 
             const conditionsSource = map.current.getSource('conditions') as maplibregl.GeoJSONSource;
+            console.log('RoutePlanner: Conditions source exists?', !!conditionsSource);
+            console.log('RoutePlanner: Conditions GeoJSON features count:', conditionsGeoJSON.features.length);
+            
             if (conditionsSource) {
+                console.log('RoutePlanner: Updating conditions source data with', conditionsGeoJSON.features.length, 'features');
                 conditionsSource.setData(conditionsGeoJSON);
             } else {
+                console.log('RoutePlanner: Adding conditions source and layer');
                 map.current.addSource('conditions', {
                     type: 'geojson',
                     data: conditionsGeoJSON
@@ -231,11 +237,30 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             }
         };
 
-        if (map.current.isStyleLoaded()) {
-            updateLayers();
-        } else {
-            map.current.once('load', updateLayers);
-        }
+        // Always update layers when dependencies change, but ensure map is ready
+        const executeUpdate = () => {
+            if (!map.current) return;
+            
+            if (map.current.isStyleLoaded()) {
+                console.log('RoutePlanner: Style is loaded, calling updateLayers immediately');
+                updateLayers();
+            } else {
+                console.log('RoutePlanner: Style not loaded yet, waiting...');
+                // Use a small timeout to wait for style to load
+                const checkStyle = setInterval(() => {
+                    if (map.current && map.current.isStyleLoaded()) {
+                        console.log('RoutePlanner: Style loaded after waiting');
+                        clearInterval(checkStyle);
+                        updateLayers();
+                    }
+                }, 50);
+                
+                // Cleanup after 5 seconds to prevent infinite loop
+                setTimeout(() => clearInterval(checkStyle), 5000);
+            }
+        };
+        
+        executeUpdate();
 
     }, [routeGeoJSON, incidents, conditions]);
 
