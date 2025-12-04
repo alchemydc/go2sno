@@ -1,0 +1,113 @@
+import React, { useEffect, useState } from 'react';
+import { getAvalancheForecast, AvalancheForecast } from '../services/avalanche';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
+
+interface AvalancheReportCardProps {
+    destination: string;
+}
+
+export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destination }) => {
+    const [forecast, setForecast] = useState<AvalancheForecast | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchForecast = async () => {
+            setLoading(true);
+            const data = await getAvalancheForecast(destination);
+            setForecast(data);
+            setLoading(false);
+        };
+
+        fetchForecast();
+    }, [destination]);
+
+    if (loading) {
+        return (
+            <div className="card" style={{ marginBottom: '1.5rem', minHeight: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: '#6b7280' }}>Loading avalanche report...</div>
+            </div>
+        );
+    }
+
+    if (!forecast) {
+        return null; // Don't show card if no forecast available for this zone
+    }
+
+    const getDangerColor = (rating: number) => {
+        switch (rating) {
+            case 1: return '#4ade80'; // Low - Green
+            case 2: return '#facc15'; // Moderate - Yellow
+            case 3: return '#f97316'; // Considerable - Orange
+            case 4: return '#ef4444'; // High - Red
+            case 5: return '#000000'; // Extreme - Black
+            default: return '#9ca3af'; // Grey
+        }
+    };
+
+    const dangerColor = getDangerColor(forecast.dangerRating);
+    const isExtreme = forecast.dangerRating === 5;
+
+    return (
+        <div className="card" style={{ marginBottom: '1.5rem', borderLeft: `6px solid ${dangerColor}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <AlertTriangle size={20} style={{ marginRight: '0.5rem', color: dangerColor }} />
+                    <h2 style={{ margin: 0, fontSize: '1.125rem' }}>Avalanche Report</h2>
+                </div>
+                <span style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    backgroundColor: '#f3f4f6',
+                    padding: '2px 8px',
+                    borderRadius: '12px'
+                }}>
+                    {forecast.zoneName}
+                </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{
+                    backgroundColor: dangerColor,
+                    color: isExtreme ? 'white' : 'black',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    marginRight: '0.75rem',
+                    border: isExtreme ? '1px solid #333' : 'none'
+                }}>
+                    {forecast.dangerRating}
+                </div>
+                <div>
+                    <div style={{ fontWeight: 'bold', color: isExtreme ? dangerColor : 'inherit' }}>
+                        {forecast.dangerRatingDescription.toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Danger Level</div>
+                </div>
+            </div>
+
+            <p style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '1rem', lineHeight: '1.4' }}>
+                {forecast.summary}
+            </p>
+
+            <a
+                href={forecast.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    fontSize: '0.875rem',
+                    color: '#2563eb',
+                    textDecoration: 'none',
+                    fontWeight: 500
+                }}
+            >
+                View Full Forecast <ExternalLink size={14} style={{ marginLeft: '4px' }} />
+            </a>
+        </div>
+    );
+};

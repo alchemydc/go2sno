@@ -3,6 +3,7 @@ import { RoutePlanner, locations } from './RoutePlanner';
 import { CameraGrid } from './CameraGrid';
 import { ResortList } from './ResortList';
 import { IncidentsCard } from './IncidentsCard';
+import { AvalancheReportCard } from './AvalancheReportCard';
 import { getWeather } from '../services/weather';
 import type { WeatherForecast } from '../services/weather';
 import { CloudSun } from 'lucide-react';
@@ -136,6 +137,10 @@ export const Dashboard: React.FC = () => {
                         ) : (
                             <div>Loading weather...</div>
                         )}
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <AvalancheReportCard destination={destination} />
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
