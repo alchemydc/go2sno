@@ -10,9 +10,8 @@ interface RouteStats {
     newSnow: string;
 }
 
-
-
 // Coordinates for locations
+// TODO: find a better way than this
 export const locations: Record<string, string> = {
     boulder: '40.0150,-105.2705',
     denver: '39.7392,-104.9903',
@@ -112,7 +111,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     // Update map with route and alerts
     useEffect(() => {
         if (!map.current) return;
-
+        // TODO: move all the console.logging to DEBUG mode
         console.log('RoutePlanner: Effect triggered');
         console.log('RoutePlanner: Incidents count:', incidents.length);
         console.log('RoutePlanner: Conditions count:', conditions.length);
@@ -140,6 +139,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                             'line-join': 'round',
                             'line-cap': 'round'
                         },
+                        // TODO: color coding of traffic delays on route
                         paint: {
                             'line-color': '#2563eb',
                             'line-width': 5,
@@ -173,14 +173,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             };
 
             const incidentsSource = map.current.getSource('incidents') as maplibregl.GeoJSONSource;
-            console.log('RoutePlanner: Incidents source exists?', !!incidentsSource);
-            console.log('RoutePlanner: Incidents GeoJSON features count:', incidentsGeoJSON.features.length);
 
             if (incidentsSource) {
-                console.log('RoutePlanner: Updating incidents source data with', incidentsGeoJSON.features.length, 'features');
                 incidentsSource.setData(incidentsGeoJSON);
             } else {
-                console.log('RoutePlanner: Adding incidents source and layer');
                 map.current.addSource('incidents', {
                     type: 'geojson',
                     data: incidentsGeoJSON
@@ -190,7 +186,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     type: 'circle',
                     source: 'incidents',
                     paint: {
-                        'circle-radius': 6,
+                        'circle-radius': 8,
                         'circle-color': '#ef4444', // Red
                         'circle-stroke-width': 1,
                         'circle-stroke-color': '#ffffff'
@@ -216,14 +212,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             };
 
             const conditionsSource = map.current.getSource('conditions') as maplibregl.GeoJSONSource;
-            console.log('RoutePlanner: Conditions source exists?', !!conditionsSource);
-            console.log('RoutePlanner: Conditions GeoJSON features count:', conditionsGeoJSON.features.length);
 
             if (conditionsSource) {
-                console.log('RoutePlanner: Updating conditions source data with', conditionsGeoJSON.features.length, 'features');
                 conditionsSource.setData(conditionsGeoJSON);
             } else {
-                console.log('RoutePlanner: Adding conditions source and layer');
                 map.current.addSource('conditions', {
                     type: 'geojson',
                     data: conditionsGeoJSON
@@ -233,7 +225,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     type: 'circle',
                     source: 'conditions',
                     paint: {
-                        'circle-radius': 5,
+                        'circle-radius': 6,
                         'circle-color': '#f59e0b', // Orange
                         'circle-stroke-width': 1,
                         'circle-stroke-color': '#ffffff'
@@ -247,14 +239,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             if (!map.current) return;
 
             if (map.current.isStyleLoaded()) {
-                console.log('RoutePlanner: Style is loaded, calling updateLayers immediately');
                 updateLayers();
             } else {
-                console.log('RoutePlanner: Style not loaded yet, waiting...');
                 // Use a small timeout to wait for style to load
                 const checkStyle = setInterval(() => {
                     if (map.current && map.current.isStyleLoaded()) {
-                        console.log('RoutePlanner: Style loaded after waiting');
                         clearInterval(checkStyle);
                         updateLayers();
                     }
@@ -372,7 +361,6 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
         if (mapContainer.current) {
             const mapId = Math.random().toString(36).substring(7);
-            console.log(`RoutePlanner: Initializing map instance ${mapId}`);
 
             map.current = new maplibregl.Map({
                 container: mapContainer.current,
@@ -383,7 +371,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                             type: 'raster',
                             tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
                             tileSize: 256,
-                            attribution: '&copy; OpenStreetMap Contributors',
+                            //attribution: '&copy; OpenStreetMap Contributors',
                         }
                     },
                     layers: [
@@ -396,7 +384,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         }
                     ]
                 },
-                center: [-105.6, 39.7], // Center roughly between Denver and Frisco
+                center: [-105.6, 39.7], // Center roughly between Denver and Frisco.  Will need to rethink this for multi-region
                 zoom: 8
             });
 

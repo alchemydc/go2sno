@@ -3,8 +3,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Colorado Snow Go',
-    description: 'Real-time I-70 road conditions and resort status.',
+    title: 'Go2Snow',
+    description: 'Real-time snow, weather, avalanche and road conditions.',
 };
 
 export default function RootLayout({

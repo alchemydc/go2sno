@@ -20,9 +20,12 @@ A real-time dashboard for Colorado skiers to check I-70 road conditions, weather
     ```
 
 2.  Configure Environment:
-    Create a `.env` file in the root directory and add your COtrip API key:
+    Create a `.env` file in the root directory and add your required API keys:
+    - COtrip: road conditions and accidents/incidents
+    - tomtom: routing
     ```env
     COTRIP_API_KEY=your_api_key_here
+    TOMTOM_API_KEY=your_api_key_here
     ```
 
 3.  Run the development server:
@@ -43,4 +46,6 @@ A real-time dashboard for Colorado skiers to check I-70 road conditions, weather
 *   **Icons:** Lucide React
 *   **Data Sources:**
     *   COtrip API (Road Incidents & Conditions)
+    *   TomTom (routing)
+      - `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
     *   National Weather Service API (Weather)

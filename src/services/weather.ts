@@ -26,7 +26,7 @@ export const getWeather = async (lat: number, lon: number): Promise<WeatherForec
     } catch (error) {
         console.error('Error fetching weather:', error);
         return {
-            temperature: 32,
+            temperature: NaN,
             shortForecast: 'Unavailable',
             windSpeed: 'N/A',
             icon: '',

@@ -17,7 +17,6 @@ export const Dashboard: React.FC = () => {
     const [destination, setDestination] = useState('leadville');
     const [from, setFrom] = useState('boulder');
     const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
-
     const [allIncidents, setAllIncidents] = useState<Incident[]>([]);
     const [allConditions, setAllConditions] = useState<RoadCondition[]>([]);
     const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -49,7 +48,6 @@ export const Dashboard: React.FC = () => {
                 setLoadingAlerts(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -59,7 +57,7 @@ export const Dashboard: React.FC = () => {
 
         if (routeGeoJSON && routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates) {
             const routeLine = lineString(routeGeoJSON.geometry.coordinates);
-            const MAX_DISTANCE_MILES = 1;
+            const MAX_DISTANCE_MILES = 1; // range beyond which incidents and conditions will be ignored for a given route
 
             const filteredIncidents = allIncidents.filter(incident => {
                 let coords: number[];
@@ -97,8 +95,8 @@ export const Dashboard: React.FC = () => {
         <div className="container">
             <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h1 style={{ color: 'var(--color-primary)', fontSize: '2.5rem', marginBottom: '0.5rem', margin: 0 }}>Colorado Snow Go</h1>
-                    <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time I-70 road conditions and resort status.</p>
+                    <h1 style={{ color: 'var(--color-primary)', fontSize: '2.5rem', marginBottom: '0.5rem', margin: 0 }}>Go2Snow</h1>
+                    <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time snow, weather, avalanche and road conditions.</p>
                 </div>
                 <ThemeToggle />
             </header>
@@ -120,7 +118,7 @@ export const Dashboard: React.FC = () => {
                     <CameraGrid />
                 </div>
 
-                {/* Sidebar: Weather & Resorts */}
+                {/* Sidebar: Weather, Avalanche Conditions, Road Conditions & Incidents and Resort Reports */}
                 <div>
                     {/* Weather Card */}
                     <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: '1.5rem' }}>
