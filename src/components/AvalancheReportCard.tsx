@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAvalancheForecast, AvalancheForecast } from '../services/avalanche';
-import { AlertTriangle, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
 
 interface AvalancheReportCardProps {
     destination: string;
@@ -23,8 +23,9 @@ export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destin
 
     if (loading) {
         return (
-            <div className="card" style={{ marginBottom: '1.5rem', minHeight: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ color: '#6b7280' }}>Loading avalanche report...</div>
+            <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <Loader2 className="animate-spin" size={32} color="var(--color-primary)" />
+                <span style={{ marginLeft: '0.5rem', color: '#6b7280' }}>Loading avalanche report...</span>
             </div>
         );
     }
@@ -89,8 +90,8 @@ export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destin
                 </div>
             </div>
 
-            <p style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '1rem', lineHeight: '1.4' }}>
-                {forecast.summary}
+            <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '1rem', lineHeight: '1.4' }}>
+                {forecast.summary.replace(/<[^>]*>/g, '')}
             </p>
 
             <a
