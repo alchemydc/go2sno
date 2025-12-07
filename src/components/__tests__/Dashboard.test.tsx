@@ -40,7 +40,7 @@ describe('Dashboard', () => {
         render(<RegionProvider><Dashboard /></RegionProvider>);
 
         await waitFor(() => {
-            expect(screen.getByText('Go2Snow')).toBeInTheDocument();
+            expect(screen.getByText('go2sno')).toBeInTheDocument();
             expect(screen.getByText('Route Planner')).toBeInTheDocument();
             expect(screen.getByText('Road Cameras')).toBeInTheDocument();
             expect(screen.getByText('Resort Status')).toBeInTheDocument();
@@ -140,6 +140,6 @@ describe('Dashboard', () => {
         });
 
         // The Dashboard should have rendered despite the API errors
-        expect(screen.getByText('Go2Snow')).toBeInTheDocument();
+        expect(screen.getByText('go2sno')).toBeInTheDocument();
     });
 });
