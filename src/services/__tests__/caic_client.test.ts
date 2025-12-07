@@ -41,7 +41,8 @@ describe('CaicClient', () => {
             const mockResponse = [
                 {
                     type: 'avalancheforecast',
-                    areaId: 'd265b6c0e3bf3244aaa6a60173183d489431b66e8e7655036a281ba6bfb0902a',
+                    // Updated December 6, 2025 - new Vail & Summit County area ID
+                    areaId: '65600272998c7d51ab3b86184d15c811ebce93388b3e4f008717a91be3411769',
                     dangerRating: 3
                 }
             ];
@@ -55,7 +56,8 @@ describe('CaicClient', () => {
 
             expect(result).not.toBeNull();
             expect(result?.type).toBe('avalancheforecast');
-            expect(result?.areaId).toBe('d265b6c0e3bf3244aaa6a60173183d489431b66e8e7655036a281ba6bfb0902a');
+            // Updated December 6, 2025 - CAIC changed their zone system and area IDs
+            expect(result?.areaId).toBe('65600272998c7d51ab3b86184d15c811ebce93388b3e4f008717a91be3411769');
         });
 
         it('should return null for invalid zone slug', async () => {

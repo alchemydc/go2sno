@@ -2,17 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { getResorts } from '../services/resorts';
 import type { Resort } from '../services/resorts';
 import { Snowflake, Mountain } from 'lucide-react';
+import { useRegion } from '../context/RegionContext';
 
 export const ResortList: React.FC = () => {
+    const { selectedRegion } = useRegion();
     const [resorts, setResorts] = useState<Resort[]>([]);
     const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
 
     useEffect(() => {
         getResorts().then((data) => {
-            const sorted = [...data].sort((a, b) => b.snow24h - a.snow24h);
+            // Filter resorts by selected region
+            const filtered = data.filter(resort => selectedRegion.resortIds.includes(resort.id));
+            const sorted = [...filtered].sort((a, b) => b.snow24h - a.snow24h);
             setResorts(sorted);
         });
-    }, []);
+    }, [selectedRegion.id]);
 
     const handleSort = (type: 'snow' | 'name') => {
         setSortBy(type);

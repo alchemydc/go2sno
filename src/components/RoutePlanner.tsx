@@ -11,27 +11,20 @@ interface RouteStats {
 }
 
 // Coordinates for locations
-// TODO: find a better way than this
-export const locations: Record<string, string> = {
-    boulder: '40.0150,-105.2705',
-    denver: '39.7392,-104.9903',
-    frisco: '39.5744,-106.0975',
-    vail: '39.6403,-106.3742',
-    winterpark: '39.8917,-105.7631',
-    leadville: '39.2508,-106.2925',
-    silverton: '37.8119,-107.6639',
-    wolfcreek: '37.3869,-106.8830',
-    crestedbutte: '38.8697,-106.9878',
-    aspen: '39.1911,-106.8175',
-    telluride: '37.9375,-107.8123',
-    beavercreek: '39.6042,-106.5165',
-    monarch: '38.5458,-106.3258',
-    arapahoebasin: '39.6425,-105.8719'
-};
+// This is now passed as a prop from the Dashboard which gets it from the RegionContext
 
 import { Incident, RoadCondition } from '../services/cdot';
 
+export interface LocationOption {
+    id: string;
+    name: string;
+    coordinates: string;
+    type: 'gateway' | 'resort' | 'town';
+}
+
 interface RoutePlannerProps {
+    locations: Record<string, string>; // ID -> coordinates mapping
+    locationOptions: LocationOption[]; // Full location data for dropdowns
     destination: string;
     onDestinationChange: (destination: string) => void;
     from: string;
@@ -42,6 +35,8 @@ interface RoutePlannerProps {
 }
 
 export const RoutePlanner: React.FC<RoutePlannerProps> = ({
+    locations,
+    locationOptions,
     destination,
     onDestinationChange,
     from,
@@ -414,17 +409,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         onChange={(e) => onFromChange(e.target.value)}
                         style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
                     >
-                        <option value="boulder" disabled={destination === 'boulder'}>Boulder</option>
-                        <option value="denver" disabled={destination === 'denver'}>Denver</option>
-                        <option value="leadville" disabled={destination === 'leadville'}>Leadville</option>
-                        <option value="silverton" disabled={destination === 'silverton'}>Silverton</option>
-                        <option value="wolfcreek" disabled={destination === 'wolfcreek'}>Wolf Creek</option>
-                        <option value="crestedbutte" disabled={destination === 'crestedbutte'}>Crested Butte</option>
-                        <option value="aspen" disabled={destination === 'aspen'}>Aspen</option>
-                        <option value="telluride" disabled={destination === 'telluride'}>Telluride</option>
-                        <option value="beavercreek" disabled={destination === 'beavercreek'}>Beaver Creek</option>
-                        <option value="monarch" disabled={destination === 'monarch'}>Monarch</option>
-                        <option value="arapahoebasin" disabled={destination === 'arapahoebasin'}>Arapahoe Basin</option>
+                        {locationOptions.map(loc => (
+                            <option key={loc.id} value={loc.id} disabled={destination === loc.id}>
+                                {loc.name}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -434,19 +423,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         onChange={(e) => onDestinationChange(e.target.value)}
                         style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
                     >
-                        <option value="frisco" disabled={from === 'frisco'}>Frisco</option>
-                        <option value="vail" disabled={from === 'vail'}>Vail</option>
-                        <option value="winterpark" disabled={from === 'winterpark'}>Winter Park</option>
-                        <option value="silverton" disabled={from === 'silverton'}>Silverton</option>
-                        <option value="wolfcreek" disabled={from === 'wolfcreek'}>Wolf Creek</option>
-                        <option value="crestedbutte" disabled={from === 'crestedbutte'}>Crested Butte</option>
-                        <option value="leadville" disabled={from === 'leadville'}>Leadville</option>
-                        <option value="boulder" disabled={from === 'boulder'}>Boulder</option>
-                        <option value="aspen" disabled={from === 'aspen'}>Aspen</option>
-                        <option value="telluride" disabled={from === 'telluride'}>Telluride</option>
-                        <option value="beavercreek" disabled={from === 'beavercreek'}>Beaver Creek</option>
-                        <option value="monarch" disabled={from === 'monarch'}>Monarch</option>
-                        <option value="arapahoebasin" disabled={from === 'arapahoebasin'}>Arapahoe Basin</option>
+                        {locationOptions.map(loc => (
+                            <option key={loc.id} value={loc.id} disabled={from === loc.id}>
+                                {loc.name}
+                            </option>
+                        ))}
                     </select>
                 </div>
             </div>

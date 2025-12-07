@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { getAvalancheForecast, AvalancheForecast } from '../services/avalanche';
+import { AvalancheForecast } from '../services/avalanche';
 import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
+import { useRegion } from '../context/RegionContext';
+import { getAvalancheService } from '../services/factory';
 
 interface AvalancheReportCardProps {
     destination: string;
 }
 
 export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destination }) => {
+    const { selectedRegion } = useRegion();
     const [forecast, setForecast] = useState<AvalancheForecast | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchForecast = async () => {
             setLoading(true);
-            const data = await getAvalancheForecast(destination);
+            const avalancheService = getAvalancheService(selectedRegion.id);
+            const data = await avalancheService.getAvalancheForecast(destination);
             setForecast(data);
             setLoading(false);
         };
 
         fetchForecast();
-    }, [destination]);
+    }, [destination, selectedRegion.id]);
 
     if (loading) {
         return (

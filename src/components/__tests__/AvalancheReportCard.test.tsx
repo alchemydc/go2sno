@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AvalancheReportCard } from '../AvalancheReportCard';
 import * as avalancheService from '../../services/avalanche';
+import { RegionProvider } from '../../context/RegionContext';
 
 vi.mock('../../services/avalanche');
 
@@ -15,7 +16,7 @@ describe('AvalancheReportCard', () => {
             () => new Promise(() => { }) // Never resolves
         );
 
-        render(<AvalancheReportCard destination="frisco" />);
+        render(<RegionProvider><AvalancheReportCard destination="frisco" /></RegionProvider>);
 
         expect(screen.getByText(/loading avalanche report/i)).toBeInTheDocument();
     });
@@ -33,7 +34,7 @@ describe('AvalancheReportCard', () => {
 
         vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(mockForecast);
 
-        render(<AvalancheReportCard destination="frisco" />);
+        render(<RegionProvider><AvalancheReportCard destination="frisco" /></RegionProvider>);
 
         await waitFor(() => {
             expect(screen.getByText('Avalanche Report')).toBeInTheDocument();
@@ -46,7 +47,7 @@ describe('AvalancheReportCard', () => {
     it('should render nothing if forecast is null', async () => {
         vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(null);
 
-        const { container } = render(<AvalancheReportCard destination="frisco" />);
+        const { container } = render(<RegionProvider><AvalancheReportCard destination="frisco" /></RegionProvider>);
 
         await waitFor(() => {
             expect(container.firstChild).toBeNull();

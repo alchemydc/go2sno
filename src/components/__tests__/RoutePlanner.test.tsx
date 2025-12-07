@@ -1,8 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { RoutePlanner } from '../RoutePlanner';
+import { RoutePlanner, LocationOption } from '../RoutePlanner';
 
 vi.mock('maplibre-gl');
+
+// Mock locations data for testing
+const mockLocations: Record<string, string> = {
+    boulder: '40.0150,-105.2705',
+    denver: '39.7392,-104.9903',
+    frisco: '39.5744,-106.0975',
+    vail: '39.6403,-106.3742',
+    winterpark: '39.8917,-105.7631',
+    leadville: '39.2508,-106.2925',
+};
+
+const mockLocationOptions: LocationOption[] = [
+    { id: 'boulder', name: 'Boulder', coordinates: '40.0150,-105.2705', type: 'gateway' },
+    { id: 'denver', name: 'Denver', coordinates: '39.7392,-104.9903', type: 'gateway' },
+    { id: 'frisco', name: 'Frisco', coordinates: '39.5744,-106.0975', type: 'town' },
+    { id: 'vail', name: 'Vail', coordinates: '39.6403,-106.3742', type: 'resort' },
+    { id: 'winterpark', name: 'Winter Park', coordinates: '39.8917,-105.7631', type: 'resort' },
+    { id: 'leadville', name: 'Leadville', coordinates: '39.2508,-106.2925', type: 'town' },
+];
 
 describe('RoutePlanner', () => {
     const mockOnDestinationChange = vi.fn();
@@ -17,6 +36,8 @@ describe('RoutePlanner', () => {
     it('should render from and to selects', () => {
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -37,6 +58,8 @@ describe('RoutePlanner', () => {
     it('should call onFromChange when from selection changes', () => {
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -55,6 +78,8 @@ describe('RoutePlanner', () => {
     it('should call onDestinationChange when to selection changes', () => {
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -84,6 +109,8 @@ describe('RoutePlanner', () => {
 
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -103,6 +130,8 @@ describe('RoutePlanner', () => {
 
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -135,6 +164,8 @@ describe('RoutePlanner', () => {
 
         const { container } = render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -167,6 +198,8 @@ describe('RoutePlanner', () => {
 
         const { container } = render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -183,6 +216,8 @@ describe('RoutePlanner', () => {
     it('should display loading state initially', () => {
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"
@@ -208,6 +243,8 @@ describe('RoutePlanner', () => {
 
         render(
             <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
                 destination="frisco"
                 onDestinationChange={mockOnDestinationChange}
                 from="boulder"

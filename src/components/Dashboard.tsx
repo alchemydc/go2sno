@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RoutePlanner, locations } from './RoutePlanner';
+import { RoutePlanner } from './RoutePlanner';
 import { CameraGrid } from './CameraGrid';
 import { ResortList } from './ResortList';
 import { IncidentsCard } from './IncidentsCard';
@@ -8,20 +8,45 @@ import { getWeather } from '../services/weather';
 import type { WeatherForecast } from '../services/weather';
 import { CloudSun } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { getIncidents, getRoadConditions, Incident, RoadCondition } from '../services/cdot';
+import { Incident, RoadCondition } from '../services/cdot';
 import pointToLineDistance from '@turf/point-to-line-distance';
 import { point, lineString } from '@turf/helpers';
+import { useRegion } from '../context/RegionContext';
+import { ResponsiveHeaderSelector } from './ResponsiveHeaderSelector';
+import { getRoadService } from '../services/factory';
 
 export const Dashboard: React.FC = () => {
+    const { selectedRegion } = useRegion();
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
-    const [destination, setDestination] = useState('leadville');
-    const [from, setFrom] = useState('boulder');
+    const [destination, setDestination] = useState('');
+    const [from, setFrom] = useState('');
     const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
     const [allIncidents, setAllIncidents] = useState<Incident[]>([]);
     const [allConditions, setAllConditions] = useState<RoadCondition[]>([]);
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [conditions, setConditions] = useState<RoadCondition[]>([]);
     const [loadingAlerts, setLoadingAlerts] = useState(true);
+
+    const roadService = getRoadService(selectedRegion.id);
+    const locations = selectedRegion.locations.reduce((acc, loc) => {
+        acc[loc.id] = loc.coordinates;
+        return acc;
+    }, {} as Record<string, string>);
+
+    // Reset from/destination when region changes
+    useEffect(() => {
+        // Set default locations based on region
+        const gatewayLocations = selectedRegion.locations.filter(loc => loc.type === 'gateway');
+        const resortLocations = selectedRegion.locations.filter(loc => loc.type === 'resort');
+
+        // Default "from" to first gateway or first location
+        const defaultFrom = gatewayLocations[0]?.id || selectedRegion.locations[0]?.id || '';
+        // Default "to" to first resort or second location
+        const defaultTo = resortLocations[0]?.id || selectedRegion.locations[1]?.id || '';
+
+        setFrom(defaultFrom);
+        setDestination(defaultTo);
+    }, [selectedRegion.id]);
 
     useEffect(() => {
         // Get coordinates for selected destination
@@ -32,13 +57,14 @@ export const Dashboard: React.FC = () => {
         }
     }, [destination]);
 
-    // Fetch all alerts once on mount
+    // Fetch alerts when region changes
     useEffect(() => {
         const fetchData = async () => {
+            setLoadingAlerts(true);
             try {
                 const [incidentsData, conditionsData] = await Promise.all([
-                    getIncidents(),
-                    getRoadConditions()
+                    roadService.getIncidents(),
+                    roadService.getRoadConditions()
                 ]);
                 setAllIncidents(incidentsData);
                 setAllConditions(conditionsData);
@@ -49,7 +75,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [selectedRegion.id]);
 
     // Filter alerts when route or data changes
     useEffect(() => {
@@ -98,7 +124,10 @@ export const Dashboard: React.FC = () => {
                     <h1 style={{ color: 'var(--color-primary)', fontSize: '2.5rem', marginBottom: '0.5rem', margin: 0 }}>Go2Snow</h1>
                     <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time snow, weather, avalanche and road conditions.</p>
                 </div>
-                <ThemeToggle />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <ResponsiveHeaderSelector />
+                    <ThemeToggle />
+                </div>
             </header>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
@@ -106,6 +135,8 @@ export const Dashboard: React.FC = () => {
                 {/* Main Column: Route & Cameras */}
                 <div style={{ gridColumn: 'span 2' }}>
                     <RoutePlanner
+                        locations={locations}
+                        locationOptions={selectedRegion.locations}
                         destination={destination}
                         onDestinationChange={setDestination}
                         from={from}

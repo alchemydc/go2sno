@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ResortList } from '../ResortList';
 import * as resortsService from '../../services/resorts';
+import { RegionProvider } from '../../context/RegionContext';
 
 vi.mock('../../services/resorts');
 
@@ -18,7 +19,7 @@ describe('ResortList', () => {
     });
 
     it('should fetch and render resorts', async () => {
-        render(<ResortList />);
+        render(<RegionProvider><ResortList /></RegionProvider>);
 
         await waitFor(() => {
             expect(screen.getByText('Resort Status')).toBeInTheDocument();
@@ -29,7 +30,7 @@ describe('ResortList', () => {
     });
 
     it('should display snow and lift information', async () => {
-        render(<ResortList />);
+        render(<RegionProvider><ResortList /></RegionProvider>);
 
         await waitFor(() => {
             expect(screen.getByText('5"')).toBeInTheDocument();
@@ -38,7 +39,7 @@ describe('ResortList', () => {
     });
 
     it('should sort by snow by default (descending)', async () => {
-        render(<ResortList />);
+        render(<RegionProvider><ResortList /></RegionProvider>);
 
         await waitFor(() => {
             const resortNames = screen.getAllByRole('heading', { level: 3 });
@@ -49,7 +50,7 @@ describe('ResortList', () => {
     });
 
     it('should sort by name when selected', async () => {
-        render(<ResortList />);
+        render(<RegionProvider><ResortList /></RegionProvider>);
 
         await waitFor(() => {
             expect(screen.getByText('Breckenridge')).toBeInTheDocument();

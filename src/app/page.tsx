@@ -1,7 +1,12 @@
 'use client';
 
 import { Dashboard } from '../components/Dashboard';
+import { RegionProvider } from '../context/RegionContext';
 
 export default function Home() {
-    return <Dashboard />;
+    return (
+        <RegionProvider>
+            <Dashboard />
+        </RegionProvider>
+    );
 }
