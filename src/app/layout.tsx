@@ -3,7 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Go2Snow',
+    title: 'go2sno',
     description: 'Real-time snow, weather, avalanche and road conditions.',
 };
 
