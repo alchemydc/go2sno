@@ -4,11 +4,13 @@ import { Dashboard } from '../Dashboard';
 import * as weatherService from '../../services/weather';
 import * as cdotService from '../../services/cdot';
 import * as resortsService from '../../services/resorts';
+import * as avalancheService from '../../services/avalanche';
 import { RegionProvider } from '../../context/RegionContext';
 
 vi.mock('../../services/weather');
 vi.mock('../../services/cdot');
 vi.mock('../../services/resorts');
+vi.mock('../../services/avalanche');
 vi.mock('maplibre-gl');
 
 describe('Dashboard', () => {
@@ -26,9 +28,12 @@ describe('Dashboard', () => {
         // Mock CDOT services
         vi.mocked(cdotService.getIncidents).mockResolvedValue([]);
         vi.mocked(cdotService.getRoadConditions).mockResolvedValue([]);
-        vi.mocked(cdotService.getCameras).mockResolvedValue([
-            { id: '1', name: 'Test Camera', url: 'https://example.com/camera.jpg' }
+        vi.mocked(cdotService.getStreamingCameras).mockResolvedValue([
+            { id: '1', name: 'Test Camera', url: 'https://example.com/camera.m3u8', thumbnailUrl: 'https://example.com/thumb.jpg' }
         ]);
+
+        // Mock avalanche service
+        vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(null);
 
         // Mock resorts service
         vi.mocked(resortsService.getResorts).mockResolvedValue([

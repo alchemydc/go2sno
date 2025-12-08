@@ -8,7 +8,7 @@ interface CameraGridProps {
 }
 
 export const CameraGrid: React.FC<CameraGridProps> = ({ cameras }) => {
-    if (cameras.length === 0) {
+    if (!cameras || cameras.length === 0) {
         return null; // Don't render if no cameras
     }
 
