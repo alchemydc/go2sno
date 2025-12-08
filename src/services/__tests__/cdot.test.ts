@@ -1,22 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getCameras, getTrafficData, getIncidents, getRoadConditions } from '../cdot';
+import { getTrafficData, getIncidents, getRoadConditions } from '../cdot';
 
 describe('cdot service', () => {
     beforeEach(() => {
         vi.resetAllMocks();
     });
 
-    describe('getCameras', () => {
-        it('should return list of cameras', async () => {
-            const cameras = await getCameras();
-
-            expect(cameras).toBeInstanceOf(Array);
-            expect(cameras.length).toBeGreaterThan(0);
-            expect(cameras[0]).toHaveProperty('id');
-            expect(cameras[0]).toHaveProperty('name');
-            expect(cameras[0]).toHaveProperty('url');
-        });
-    });
+    // getCameras is deprecated - use getStreamingCameras instead (requires region check)
 
     describe('getTrafficData', () => {
         it('should return list of traffic segments', async () => {

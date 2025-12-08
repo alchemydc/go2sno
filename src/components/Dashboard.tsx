@@ -8,7 +8,7 @@ import { getWeather } from '../services/weather';
 import type { WeatherForecast } from '../services/weather';
 import { CloudSun } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { Incident, RoadCondition } from '../services/cdot';
+import { Incident, RoadCondition, Camera, getStreamingCameras } from '../services/cdot';
 import pointToLineDistance from '@turf/point-to-line-distance';
 import { point, lineString } from '@turf/helpers';
 import { useRegion } from '../context/RegionContext';
@@ -26,6 +26,8 @@ export const Dashboard: React.FC = () => {
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [conditions, setConditions] = useState<RoadCondition[]>([]);
     const [loadingAlerts, setLoadingAlerts] = useState(true);
+    const [allCameras, setAllCameras] = useState<Camera[]>([]);
+    const [cameras, setCameras] = useState<Camera[]>([]);
 
     const roadService = getRoadService(selectedRegion.id);
     const locations = selectedRegion.locations.reduce((acc, loc) => {
@@ -57,17 +59,19 @@ export const Dashboard: React.FC = () => {
         }
     }, [destination]);
 
-    // Fetch alerts when region changes
+    // Fetch alerts and cameras when region changes
     useEffect(() => {
         const fetchData = async () => {
             setLoadingAlerts(true);
             try {
-                const [incidentsData, conditionsData] = await Promise.all([
+                const [incidentsData, conditionsData, camerasData] = await Promise.all([
                     roadService.getIncidents(),
-                    roadService.getRoadConditions()
+                    roadService.getRoadConditions(),
+                    selectedRegion.id === 'co' ? getStreamingCameras() : Promise.resolve([])
                 ]);
                 setAllIncidents(incidentsData);
                 setAllConditions(conditionsData);
+                setAllCameras(camerasData);
             } catch (error) {
                 console.error('Error loading alerts:', error);
             } finally {
@@ -77,13 +81,14 @@ export const Dashboard: React.FC = () => {
         fetchData();
     }, [selectedRegion.id]);
 
-    // Filter alerts when route or data changes
+    // Filter alerts and cameras when route or data changes
     useEffect(() => {
         if (loadingAlerts) return;
 
         if (routeGeoJSON && routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates) {
             const routeLine = lineString(routeGeoJSON.geometry.coordinates);
             const MAX_DISTANCE_MILES = 1; // range beyond which incidents and conditions will be ignored for a given route
+            const CAMERA_MAX_DISTANCE_MILES = 5; // cameras can be further from route
 
             const filteredIncidents = allIncidents.filter(incident => {
                 let coords: number[];
@@ -106,13 +111,22 @@ export const Dashboard: React.FC = () => {
                 return distance <= MAX_DISTANCE_MILES;
             });
 
+            const filteredCameras = allCameras.filter(camera => {
+                if (!camera.latitude || !camera.longitude) return false;
+                const pt = point([camera.longitude, camera.latitude]);
+                const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
+                return distance <= CAMERA_MAX_DISTANCE_MILES;
+            });
+
             setIncidents(filteredIncidents);
             setConditions(filteredConditions);
+            setCameras(filteredCameras);
         } else {
             setIncidents(allIncidents);
             setConditions(allConditions);
+            setCameras(allCameras);
         }
-    }, [routeGeoJSON, allIncidents, allConditions, loadingAlerts]);
+    }, [routeGeoJSON, allIncidents, allConditions, allCameras, loadingAlerts]);
 
     // Format destination name for display (capitalize first letter)
     const destinationName = destination.charAt(0).toUpperCase() + destination.slice(1);
@@ -148,7 +162,7 @@ export const Dashboard: React.FC = () => {
                         onRegionChange={setRegionId}
                     />
 
-                    <CameraGrid />
+                    <CameraGrid cameras={cameras} />
                 </div>
 
                 {/* Sidebar: Weather, Avalanche Conditions, Road Conditions & Incidents and Resort Reports */}

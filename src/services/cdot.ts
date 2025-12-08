@@ -1,7 +1,10 @@
 export interface Camera {
   id: string;
   name: string;
-  url: string; // Placeholder image URL
+  url: string;
+  thumbnailUrl?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface TrafficSegment {
@@ -41,16 +44,42 @@ export interface RoadCondition {
   };
 }
 
+export const getStreamingCameras = async (): Promise<Camera[]> => {
+  try {
+    const url = 'https://cotg.carsprogram.org/cameras_v1/api/cameras';
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch cameras');
+
+    const data = await res.json();
+
+    return (data || [])
+      .filter((camera: any) => camera.public && camera.active)
+      .map((camera: any) => {
+        // Find the WMP (Windows Media Player/HLS streaming) view
+        const wmpView = camera.views?.find((view: any) => view.type === 'WMP');
+
+        if (!wmpView?.url) return null;
+
+        return {
+          id: String(camera.id),
+          name: camera.name || 'Unknown Camera',
+          url: wmpView.url,
+          thumbnailUrl: wmpView.videoPreviewUrl,
+          latitude: camera.location?.latitude,
+          longitude: camera.location?.longitude
+        };
+      })
+      .filter((cam: Camera | null): cam is Camera => cam !== null && !!cam.url);
+  } catch (error) {
+    console.error('Error fetching streaming cameras:', error);
+    return [];
+  }
+};
+
 export const getCameras = async (): Promise<Camera[]> => {
-  // Placeholder cameras as per MVP
-  return [
-    { id: '1', name: 'Floyd Hill', url: 'https://placehold.co/600x400?text=Floyd+Hill+Camera' },
-    { id: '2', name: 'Eisenhower Tunnel East', url: 'https://placehold.co/600x400?text=Eisenhower+Tunnel+East' },
-    { id: '3', name: 'Eisenhower Tunnel West', url: 'https://placehold.co/600x400?text=Eisenhower+Tunnel+West' },
-    { id: '4', name: 'Georgetown', url: 'https://placehold.co/600x400?text=Georgetown' },
-    { id: '5', name: 'Silverthorne', url: 'https://placehold.co/600x400?text=Silverthorne' },
-    { id: '6', name: 'Vail Pass', url: 'https://placehold.co/600x400?text=Vail+Pass' },
-  ];
+  // Deprecated: Use getStreamingCameras for real data
+  return [];
 };
 
 export const getTrafficData = async (): Promise<TrafficSegment[]> => {

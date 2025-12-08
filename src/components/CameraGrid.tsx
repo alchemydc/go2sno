@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { getCameras } from '../services/cdot';
+import React from 'react';
 import type { Camera } from '../services/cdot';
 import { Video } from 'lucide-react';
+import { CameraCard } from './CameraCard';
 
-export const CameraGrid: React.FC = () => {
-    const [cameras, setCameras] = useState<Camera[]>([]);
+interface CameraGridProps {
+    cameras: Camera[];
+}
 
-    useEffect(() => {
-        getCameras().then(setCameras);
-    }, []);
+export const CameraGrid: React.FC<CameraGridProps> = ({ cameras }) => {
+    if (cameras.length === 0) {
+        return null; // Don't render if no cameras
+    }
 
     return (
         <div className="card">
@@ -18,27 +20,7 @@ export const CameraGrid: React.FC = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
                 {cameras.map((cam) => (
-                    <div key={cam.id} style={{ position: 'relative' }}>
-                        <img
-                            src={cam.url}
-                            alt={cam.name}
-                            style={{ width: '100%', borderRadius: 'var(--radius-md)', display: 'block' }}
-                        />
-                        <div style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            background: 'rgba(0,0,0,0.6)',
-                            color: 'white',
-                            padding: '0.5rem',
-                            fontSize: '0.875rem',
-                            borderBottomLeftRadius: 'var(--radius-md)',
-                            borderBottomRightRadius: 'var(--radius-md)'
-                        }}>
-                            {cam.name}
-                        </div>
-                    </div>
+                    <CameraCard key={cam.id} camera={cam} />
                 ))}
             </div>
         </div>
