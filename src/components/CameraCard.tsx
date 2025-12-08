@@ -203,35 +203,34 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
 
     return (
         <div style={{
-            position: 'relative',
-            aspectRatio: '16/9',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#1a1a1a',
             borderRadius: 'var(--radius-md)',
-            overflow: 'hidden',
-            backgroundColor: '#000'
+            overflow: 'hidden'
         }}>
-            <video
-                ref={videoRef}
-                controls
-                muted
-                playsInline
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                }}
-            />
             <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'rgba(0,0,0,0.6)',
-                color: 'white',
+                position: 'relative',
+                aspectRatio: '16/9',
+                backgroundColor: '#000'
+            }}>
+                <video
+                    ref={videoRef}
+                    controls
+                    muted
+                    playsInline
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain'
+                    }}
+                />
+            </div>
+            <div style={{
                 padding: '0.5rem',
                 fontSize: '0.875rem',
-                borderBottomLeftRadius: 'var(--radius-md)',
-                borderBottomRightRadius: 'var(--radius-md)',
-                pointerEvents: 'none'
+                color: 'white',
+                borderTop: '1px solid #333'
             }}>
                 {camera.name}
             </div>
