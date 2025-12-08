@@ -1,7 +1,7 @@
 export interface Region {
     id: string;
     name: string;
-    displayName: string; // e.g., "Colorado - Full Support"
+    displayName: string; // e.g., "Colorado"
     center: [number, number]; // [lng, lat] for map center
     zoom: number; // Default zoom level
     bounds?: [[number, number], [number, number]]; // Max bounds [[minLng, minLat], [maxLng, maxLat]]
@@ -29,7 +29,7 @@ export const REGIONS: Record<string, Region> = {
     co: {
         id: 'co',
         name: 'Colorado',
-        displayName: 'Colorado - Full Support',
+        displayName: 'Colorado',
         center: [-106.0, 39.5], // Frisco area
         zoom: 8,
         bounds: [[-109.5, 36.5], [-102.0, 41.5]],
@@ -59,7 +59,7 @@ export const REGIONS: Record<string, Region> = {
     ut: {
         id: 'ut',
         name: 'Utah',
-        displayName: 'Utah - Weather Only',
+        displayName: 'Utah',
         center: [-111.8, 40.6], // Salt Lake area
         zoom: 9,
         bounds: [[-112.5, 40.0], [-111.0, 41.2]],
@@ -80,8 +80,8 @@ export const REGIONS: Record<string, Region> = {
     },
     canv: {
         id: 'canv',
-        name: 'California/Nevada',
-        displayName: 'CA/NV - Weather Only',
+        name: 'Tahoe',
+        displayName: 'Tahoe',
         center: [-120.0, 39.0], // Tahoe area
         zoom: 9,
         bounds: [[-121.0, 38.5], [-119.0, 39.5]],
