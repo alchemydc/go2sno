@@ -4,6 +4,8 @@ import { RoutePlanner, LocationOption } from '../RoutePlanner';
 
 vi.mock('maplibre-gl');
 
+import { Region } from '../../config/regions';
+
 // Mock locations data for testing
 const mockLocations: Record<string, string> = {
     boulder: '40.0150,-105.2705',
@@ -23,17 +25,41 @@ const mockLocationOptions: LocationOption[] = [
     { id: 'leadville', name: 'Leadville', coordinates: '39.2508,-106.2925', type: 'town' },
 ];
 
+const mockRegions: Region[] = [
+    {
+        id: 'co',
+        name: 'Colorado',
+        displayName: 'Colorado',
+        center: [-105, 39],
+        zoom: 8,
+        locations: [],
+        resortIds: [],
+        services: { weather: true, roads: true, avalanche: true }
+    },
+    {
+        id: 'ut',
+        name: 'Utah',
+        displayName: 'Utah',
+        center: [-111, 40],
+        zoom: 8,
+        locations: [],
+        resortIds: [],
+        services: { weather: true, roads: false, avalanche: false }
+    }
+];
+
 describe('RoutePlanner', () => {
     const mockOnDestinationChange = vi.fn();
     const mockOnFromChange = vi.fn();
     const mockOnRouteUpdate = vi.fn();
+    const mockOnRegionChange = vi.fn();
 
     beforeEach(() => {
         vi.resetAllMocks();
         global.fetch = vi.fn();
     });
 
-    it('should render from and to selects', () => {
+    it('should render from, to, and region selects', () => {
         render(
             <RoutePlanner
                 locations={mockLocations}
@@ -43,6 +69,9 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
@@ -50,9 +79,37 @@ describe('RoutePlanner', () => {
         expect(screen.getByText('From')).toBeInTheDocument();
         expect(screen.getByText('To')).toBeInTheDocument();
 
-        // Should have two select dropdowns
+        // Should have three select dropdowns (Region, From, To)
         const selects = screen.getAllByRole('combobox');
-        expect(selects).toHaveLength(2);
+        expect(selects).toHaveLength(3);
+    });
+
+    it('should call onRegionChange when region selection changes', () => {
+        render(
+            <RoutePlanner
+                locations={mockLocations}
+                locationOptions={mockLocationOptions}
+                destination="frisco"
+                onDestinationChange={mockOnDestinationChange}
+                from="boulder"
+                onFromChange={mockOnFromChange}
+                onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
+            />
+        );
+
+        const selects = screen.getAllByRole('combobox') as HTMLSelectElement[];
+        // The order depends on DOM structure. 
+        // Region is in the header, From/To are in the body. 
+        // Assuming Region appears first or we find it by value.
+
+        const regionSelect = selects.find(s => s.value === 'co');
+        expect(regionSelect).toBeInTheDocument();
+
+        fireEvent.change(regionSelect!, { target: { value: 'ut' } });
+        expect(mockOnRegionChange).toHaveBeenCalledWith('ut');
     });
 
     it('should call onFromChange when from selection changes', () => {
@@ -65,12 +122,15 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
-        const selects = screen.getAllByRole('combobox');
-        const fromSelect = selects[0]; // First select is "From"
-        fireEvent.change(fromSelect, { target: { value: 'denver' } });
+        const selects = screen.getAllByRole('combobox') as HTMLSelectElement[];
+        const fromSelect = selects.find(s => s.value === 'boulder');
+        fireEvent.change(fromSelect!, { target: { value: 'denver' } });
 
         expect(mockOnFromChange).toHaveBeenCalledWith('denver');
     });
@@ -85,12 +145,15 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
-        const selects = screen.getAllByRole('combobox');
-        const toSelect = selects[1]; // Second select is "To"
-        fireEvent.change(toSelect, { target: { value: 'vail' } });
+        const selects = screen.getAllByRole('combobox') as HTMLSelectElement[];
+        const toSelect = selects.find(s => s.value === 'frisco');
+        fireEvent.change(toSelect!, { target: { value: 'vail' } });
 
         expect(mockOnDestinationChange).toHaveBeenCalledWith('vail');
     });
@@ -116,6 +179,9 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
@@ -137,6 +203,9 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
@@ -172,6 +241,9 @@ describe('RoutePlanner', () => {
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
                 incidents={mockIncidents}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
@@ -206,6 +278,9 @@ describe('RoutePlanner', () => {
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
                 conditions={mockConditions}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
@@ -223,6 +298,9 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 
@@ -250,6 +328,9 @@ describe('RoutePlanner', () => {
                 from="boulder"
                 onFromChange={mockOnFromChange}
                 onRouteUpdate={mockOnRouteUpdate}
+                regions={mockRegions}
+                selectedRegionId="co"
+                onRegionChange={mockOnRegionChange}
             />
         );
 

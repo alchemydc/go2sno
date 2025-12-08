@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Navigation } from 'lucide-react';
+import { Region } from '../config/regions';
 
 interface RouteStats {
     travelTime: string;
@@ -32,6 +33,9 @@ interface RoutePlannerProps {
     onRouteUpdate: (geojson: any) => void;
     incidents?: Incident[];
     conditions?: RoadCondition[];
+    regions: Region[];
+    selectedRegionId: string;
+    onRegionChange: (regionId: string) => void;
 }
 
 export const RoutePlanner: React.FC<RoutePlannerProps> = ({
@@ -43,7 +47,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     onFromChange,
     onRouteUpdate,
     incidents = [],
-    conditions = []
+    conditions = [],
+    regions,
+    selectedRegionId,
+    onRegionChange
 }) => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<maplibregl.Map | null>(null);
@@ -396,9 +403,30 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
     return (
         <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                <Navigation size={24} color="var(--color-primary)" style={{ marginRight: '0.5rem' }} />
-                <h2 style={{ margin: 0 }}>Route Planner</h2>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Navigation size={20} color="var(--color-primary)" style={{ marginRight: '0.5rem' }} />
+                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Route Planner</h2>
+                </div>
+
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                    <select
+                        value={selectedRegionId}
+                        onChange={(e) => onRegionChange(e.target.value)}
+                        style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid #ccc',
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        {regions.map(region => (
+                            <option key={region.id} value={region.id}>
+                                {region.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>

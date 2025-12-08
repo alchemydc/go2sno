@@ -12,11 +12,11 @@ import { Incident, RoadCondition } from '../services/cdot';
 import pointToLineDistance from '@turf/point-to-line-distance';
 import { point, lineString } from '@turf/helpers';
 import { useRegion } from '../context/RegionContext';
-import { ResponsiveHeaderSelector } from './ResponsiveHeaderSelector';
 import { getRoadService } from '../services/factory';
+import { getAllRegions } from '../config/regions';
 
 export const Dashboard: React.FC = () => {
-    const { selectedRegion } = useRegion();
+    const { selectedRegion, setRegionId } = useRegion();
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
     const [destination, setDestination] = useState('');
     const [from, setFrom] = useState('');
@@ -125,7 +125,6 @@ export const Dashboard: React.FC = () => {
                     <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time snow, weather, avalanche and road conditions.</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <ResponsiveHeaderSelector />
                     <ThemeToggle />
                 </div>
             </header>
@@ -144,6 +143,9 @@ export const Dashboard: React.FC = () => {
                         onRouteUpdate={setRouteGeoJSON}
                         incidents={incidents}
                         conditions={conditions}
+                        regions={getAllRegions()}
+                        selectedRegionId={selectedRegion.id}
+                        onRegionChange={setRegionId}
                     />
 
                     <CameraGrid />
