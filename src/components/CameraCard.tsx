@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 import { Play } from 'lucide-react';
 import type { Camera } from '../services/cdot';
+import { logger } from '../utils/logger';
 
 interface CameraCardProps {
     camera: Camera;
@@ -13,19 +14,35 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
 
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const isVideo = camera.url.endsWith('.m3u8');
+    const isImage = camera.url.match(/\.(jpg|jpeg|png)$/i) || !isVideo; // Default to image if not m3u8
+
     const handleClick = () => {
-        console.log('Camera clicked:', camera.name, 'URL:', camera.url);
+        logger.debug('Camera clicked:', camera.name, 'URL:', camera.url);
         setIsPlaying(true);
     };
 
     useEffect(() => {
-        if (!isPlaying || !videoRef.current) return;
+        if (!isPlaying || !isImage) return;
+
+        // Refresh image every 60 seconds
+        const interval = setInterval(() => {
+            setRefreshTrigger(prev => prev + 1);
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [isPlaying, isImage]);
+
+    useEffect(() => {
+        if (!isPlaying || !videoRef.current || !isVideo) return;
 
         const video = videoRef.current;
 
         // Check if HLS is supported
         if (Hls.isSupported()) {
-            console.log('HLS.js is supported, loading stream for:', camera.name);
+            logger.debug('HLS.js is supported, loading stream for:', camera.name);
             const hls = new Hls({
                 enableWorker: true,
                 lowLatencyMode: false,
@@ -37,16 +54,16 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
             hls.attachMedia(video);
 
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                console.log('HLS manifest parsed for:', camera.name);
+                logger.debug('HLS manifest parsed for:', camera.name);
                 video.play().catch(e => {
-                    console.error('Error playing video:', e);
+                    logger.error('Error playing video:', e);
                     setError('Failed to play stream');
                 });
             });
 
             hls.on(Hls.Events.ERROR, (_event, data) => {
                 if (data.fatal) {
-                    console.error('Fatal HLS error for', camera.name, ':', data);
+                    logger.error('Fatal HLS error for', camera.name, ':', data);
                     if (data.details === 'manifestLoadTimeOut' || data.type === Hls.ErrorTypes.NETWORK_ERROR) {
                         setError('Connection timeout - stream server unreachable');
                     } else {
@@ -57,16 +74,16 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
             });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             // Native HLS support (Safari)
-            console.log('Using native HLS for:', camera.name);
+            logger.debug('Using native HLS for:', camera.name);
             video.src = camera.url;
             video.addEventListener('loadedmetadata', () => {
                 video.play().catch(e => {
-                    console.error('Error playing video:', e);
+                    logger.error('Error playing video:', e);
                     setError('Failed to play stream');
                 });
             });
         } else {
-            console.error('HLS not supported for:', camera.name);
+            logger.error('HLS not supported for:', camera.name);
             setError('HLS not supported in this browser');
         }
 
@@ -76,7 +93,7 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
                 hlsRef.current = null;
             }
         };
-    }, [isPlaying, camera.url, camera.name]);
+    }, [isPlaying, camera.url, camera.name, isVideo]);
 
     if (!isPlaying) {
         return (
@@ -214,17 +231,29 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
                 aspectRatio: '16/9',
                 backgroundColor: '#000'
             }}>
-                <video
-                    ref={videoRef}
-                    controls
-                    muted
-                    playsInline
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain'
-                    }}
-                />
+                {isVideo ? (
+                    <video
+                        ref={videoRef}
+                        controls
+                        muted
+                        playsInline
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain'
+                        }}
+                    />
+                ) : (
+                    <img
+                        src={`${camera.url}?t=${refreshTrigger}`}
+                        alt={camera.name}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain'
+                        }}
+                    />
+                )}
             </div>
             <div style={{
                 padding: '0.5rem',
@@ -232,7 +261,7 @@ export const CameraCard: React.FC<CameraCardProps> = ({ camera }) => {
                 color: 'white',
                 borderTop: '1px solid #333'
             }}>
-                {camera.name}
+                {camera.name} {isImage && <span style={{ fontSize: '0.7em', color: '#888' }}>(Live Image)</span>}
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 import { RoutePlanner } from './RoutePlanner';
 import { CameraGrid } from './CameraGrid';
 import { ResortList } from './ResortList';
@@ -14,6 +15,7 @@ import { point, lineString } from '@turf/helpers';
 import { useRegion } from '../context/RegionContext';
 import { getRoadService } from '../services/factory';
 import { getAllRegions } from '../config/regions';
+import { getCameras as getCaltransCameras } from '../services/caltrans';
 
 export const Dashboard: React.FC = () => {
     const { selectedRegion, setRegionId } = useRegion();
@@ -42,9 +44,9 @@ export const Dashboard: React.FC = () => {
         const resortLocations = selectedRegion.locations.filter(loc => loc.type === 'resort');
 
         // Default "from" to first gateway or first location
-        const defaultFrom = gatewayLocations[0]?.id || selectedRegion.locations[0]?.id || '';
+        const defaultFrom = selectedRegion.defaultOrigin || gatewayLocations[0]?.id || selectedRegion.locations[0]?.id || '';
         // Default "to" to first resort or second location
-        const defaultTo = resortLocations[0]?.id || selectedRegion.locations[1]?.id || '';
+        const defaultTo = selectedRegion.defaultDestination || resortLocations[0]?.id || selectedRegion.locations[1]?.id || '';
 
         setFrom(defaultFrom);
         setDestination(defaultTo);
@@ -67,13 +69,14 @@ export const Dashboard: React.FC = () => {
                 const [incidentsData, conditionsData, camerasData] = await Promise.all([
                     roadService.getIncidents(),
                     roadService.getRoadConditions(),
-                    selectedRegion.id === 'co' ? getStreamingCameras() : Promise.resolve([])
+                    selectedRegion.id === 'co' ? getStreamingCameras() :
+                        selectedRegion.id === 'canv' ? getCaltransCameras() : Promise.resolve([])
                 ]);
                 setAllIncidents(incidentsData);
                 setAllConditions(conditionsData);
                 setAllCameras(camerasData);
             } catch (error) {
-                console.error('Error loading alerts:', error);
+                logger.error('Error loading alerts:', error);
             } finally {
                 setLoadingAlerts(false);
             }

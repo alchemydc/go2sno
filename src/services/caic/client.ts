@@ -4,6 +4,7 @@ import {
     FieldReport,
     RegionalDiscussionForecast,
 } from "./types";
+import { logger } from "../../utils/logger";
 
 const CAIC_API_BASE = "https://api.avalanche.state.co.us";
 const CAIC_HOME_BASE = "https://avalanche.state.co.us";
@@ -112,7 +113,7 @@ export class CaicClient {
         };
 
         const response = await this.fetchJson<any[]>(endpoint, params);
-        console.log('Raw CAIC API response types:', response.map((i: any) => i.type));
+        logger.debug('Raw CAIC API response types:', response.map((i: any) => i.type));
 
         // Filter and cast response
         return response.map((item: any) => {
@@ -129,8 +130,8 @@ export class CaicClient {
         const targetAreaId = this.ZONE_SLUG_TO_AREA_ID[zoneSlug];
 
         // Debug: log all available area IDs and zone identifiers
-        console.log(`Looking for zone: ${zoneSlug}, mapped to areaId: ${targetAreaId}`);
-        console.log('Available forecasts:', forecasts
+        logger.debug(`Looking for zone: ${zoneSlug}, mapped to areaId: ${targetAreaId}`);
+        logger.debug('Available forecasts:', forecasts
             .filter(f => f.type === 'avalancheforecast')
             .map(f => {
                 const forecast = f as AvalancheForecast;
@@ -143,7 +144,7 @@ export class CaicClient {
         );
 
         if (!targetAreaId) {
-            console.warn(`No area ID mapping for zone: ${zoneSlug}`);
+            logger.warn(`No area ID mapping for zone: ${zoneSlug}`);
             return null;
         }
 
@@ -152,7 +153,7 @@ export class CaicClient {
         ) as AvalancheForecast | undefined;
 
         if (!forecast) {
-            console.warn(`Found mapping for ${zoneSlug} but no forecast matched areaId: ${targetAreaId}`);
+            logger.warn(`Found mapping for ${zoneSlug} but no forecast matched areaId: ${targetAreaId}`);
         }
 
         return forecast || null;
@@ -185,7 +186,7 @@ export class CaicClient {
                 }
 
             } catch (error) {
-                console.error(`Error fetching page ${page}:`, error);
+                logger.error(`Error fetching page ${page}:`, error);
                 paginating = false;
             }
         }

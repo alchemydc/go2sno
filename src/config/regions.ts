@@ -5,6 +5,8 @@ export interface Region {
     center: [number, number]; // [lng, lat] for map center
     zoom: number; // Default zoom level
     bounds?: [[number, number], [number, number]]; // Max bounds [[minLng, minLat], [maxLng, maxLat]]
+    defaultOrigin?: string;
+    defaultDestination?: string;
 
     // Key locations for "From" and "To" dropdowns in this region
     locations: {
@@ -33,6 +35,8 @@ export const REGIONS: Record<string, Region> = {
         center: [-106.0, 39.5], // Frisco area
         zoom: 8,
         bounds: [[-109.5, 36.5], [-102.0, 41.5]],
+        defaultOrigin: 'boulder',
+        defaultDestination: 'leadville',
         locations: [
             { id: 'boulder', name: 'Boulder', coordinates: '40.0150,-105.2705', type: 'gateway' },
             { id: 'denver', name: 'Denver', coordinates: '39.7392,-104.9903', type: 'gateway' },
@@ -84,10 +88,15 @@ export const REGIONS: Record<string, Region> = {
         displayName: 'Tahoe',
         center: [-120.0, 39.0], // Tahoe area
         zoom: 9,
-        bounds: [[-121.0, 38.5], [-119.0, 39.5]],
+        bounds: [[-123.0, 36.9], [-119.0, 40.0]],
         locations: [
+            { id: 'sf', name: 'San Francisco', coordinates: '37.7749,-122.4194', type: 'gateway' },
+            { id: 'oakland', name: 'Oakland', coordinates: '37.8044,-122.2712', type: 'gateway' },
+            { id: 'sacramento', name: 'Sacramento', coordinates: '38.5816,-121.4944', type: 'gateway' },
+            { id: 'santacruz', name: 'Santa Cruz', coordinates: '36.9741,-122.0308', type: 'gateway' },
             { id: 'reno', name: 'Reno', coordinates: '39.5296,-119.8138', type: 'gateway' },
             { id: 'tahoe', name: 'South Lake Tahoe', coordinates: '38.9332,-119.9772', type: 'town' },
+            { id: 'incline', name: 'Incline Village', coordinates: '39.2514,-119.9772', type: 'town' },
             { id: 'heavenly', name: 'Heavenly', coordinates: '38.9352,-119.9403', type: 'resort' },
             { id: 'palisades', name: 'Palisades Tahoe', coordinates: '39.1970,-120.2356', type: 'resort' },
             { id: 'northstar', name: 'Northstar', coordinates: '39.2730,-120.1192', type: 'resort' },

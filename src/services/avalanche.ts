@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 export interface AvalancheForecast {
     zoneId: string;
     zoneName: string;
@@ -13,13 +15,14 @@ export const getAvalancheForecast = async (destination: string): Promise<Avalanc
         const response = await fetch(`/api/avalanche?destination=${encodeURIComponent(destination)}`);
 
         if (!response.ok) {
-            console.warn(`Failed to fetch avalanche forecast: ${response.statusText}`);
+            logger.warn(`Failed to fetch avalanche forecast: ${response.statusText}`);
             return null;
         }
 
         return await response.json();
     } catch (e) {
-        console.error('Error fetching avalanche forecast:', e);
+        logger.error('Error fetching avalanche forecast:', e);
         return null;
     }
 };
+

@@ -2,6 +2,8 @@ import { RoadConditionService, AvalancheService } from './types';
 import * as cdot from './cdot';
 import * as avalanche from './avalanche';
 
+import * as caltrans from './caltrans';
+
 // Colorado implementations (real services)
 class ColoradoRoadService implements RoadConditionService {
     async getIncidents() {
@@ -10,6 +12,15 @@ class ColoradoRoadService implements RoadConditionService {
 
     async getRoadConditions() {
         return cdot.getRoadConditions();
+    }
+}
+
+class CaltransRoadService implements RoadConditionService {
+    async getIncidents() {
+        return caltrans.getIncidents();
+    }
+    async getRoadConditions() {
+        return caltrans.getRoadConditions();
     }
 }
 
@@ -39,6 +50,9 @@ class StubAvalancheService implements AvalancheService {
 export function getRoadService(regionId: string): RoadConditionService {
     if (regionId === 'co') {
         return new ColoradoRoadService();
+    }
+    if (regionId === 'canv') {
+        return new CaltransRoadService();
     }
     return new StubRoadService();
 }

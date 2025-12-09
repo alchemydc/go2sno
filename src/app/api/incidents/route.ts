@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '../../../utils/logger';
 
 export async function GET(request: Request) {
     const apiKey = process.env.COTRIP_API_KEY;
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching incidents:', error);
+        logger.error('Error fetching incidents:', error);
         return NextResponse.json({ error: 'Failed to fetch incidents' }, { status: 500 });
     }
 }

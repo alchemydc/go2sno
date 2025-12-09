@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 export interface Camera {
   id: string;
   name: string;
@@ -72,7 +74,7 @@ export const getStreamingCameras = async (): Promise<Camera[]> => {
       })
       .filter((cam: Camera | null): cam is Camera => cam !== null && !!cam.url);
   } catch (error) {
-    console.error('Error fetching streaming cameras:', error);
+    logger.error('Error fetching streaming cameras:', error);
     return [];
   }
 };
@@ -98,7 +100,7 @@ export const getIncidents = async (): Promise<Incident[]> => {
     const data = await res.json();
     return data.features || [];
   } catch (error) {
-    console.error('Error fetching incidents:', error);
+    logger.error('Error fetching incidents:', error);
     return [];
   }
 };
@@ -110,7 +112,7 @@ export const getRoadConditions = async (): Promise<RoadCondition[]> => {
     const data = await res.json();
     return data.features || [];
   } catch (error) {
-    console.error('Error fetching road conditions:', error);
+    logger.error('Error fetching road conditions:', error);
     return [];
   }
 };

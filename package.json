@@ -13,8 +13,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.2",
     "@turf/helpers": "^7.3.1",
     "@turf/point-to-line-distance": "^7.3.1",
+    "@xmldom/xmldom": "^0.8.11",
     "hls.js": "^1.6.15",
     "lucide-react": "^0.555.0",
     "maplibre-gl": "^5.14.0",

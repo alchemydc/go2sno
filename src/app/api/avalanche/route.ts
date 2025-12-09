@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { CaicClient } from '../../../services/caic/client';
 import { AvalancheForecast as CaicAvalancheForecast } from '../../../services/caic/types';
+import { logger } from '../../../utils/logger';
 
 // Mapping of destinations to CAIC zone slugs
 const DESTINATION_TO_ZONE_SLUG: Record<string, string> = {
@@ -103,7 +104,7 @@ export async function GET(request: Request) {
         return NextResponse.json(result);
 
     } catch (e: any) {
-        console.error('Failed to fetch CAIC forecast:', e);
+        logger.error('Failed to fetch CAIC forecast:', e);
         return NextResponse.json({ error: 'Failed to fetch forecast', details: e.message, stack: e.stack }, { status: 500 });
     }
 }

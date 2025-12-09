@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { AvalancheReportCard } from './AvalancheReportCard';
+import { logger } from '../utils/logger';
 import { Navigation } from 'lucide-react';
 import { Region } from '../config/regions';
 
@@ -102,7 +104,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     onRouteUpdate(geojson);
                 }
             } catch (error) {
-                console.error('Failed to fetch route stats:', error);
+                logger.error('Failed to fetch route stats:', error);
                 setStats(prev => ({ ...prev, travelTime: 'Error', delay: 'Error' }));
             }
         };
@@ -114,14 +116,14 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     useEffect(() => {
         if (!map.current) return;
         // TODO: move all the console.logging to DEBUG mode
-        console.log('RoutePlanner: Effect triggered');
-        console.log('RoutePlanner: Incidents count:', incidents.length);
-        console.log('RoutePlanner: Conditions count:', conditions.length);
+        logger.debug('RoutePlanner: Effect triggered');
+        logger.debug('RoutePlanner: Incidents count:', incidents.length);
+        logger.debug('RoutePlanner: Conditions count:', conditions.length);
 
         const updateLayers = () => {
             if (!map.current) return;
             // @ts-ignore
-            console.log(`RoutePlanner: Updating layers for map instance ${map.current._id}`);
+            logger.debug(`RoutePlanner: Updating layers for map instance ${map.current._id}`);
 
             // Route Layer
             if (routeGeoJSON) {

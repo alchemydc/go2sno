@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 export interface WeatherForecast {
     temperature: number;
     shortForecast: string;
@@ -24,7 +26,7 @@ export const getWeather = async (lat: number, lon: number): Promise<WeatherForec
             icon: current.icon,
         };
     } catch (error) {
-        console.error('Error fetching weather:', error);
+        logger.error('Error fetching weather:', error);
         return {
             temperature: NaN,
             shortForecast: 'Unavailable',
@@ -33,3 +35,4 @@ export const getWeather = async (lat: number, lon: number): Promise<WeatherForec
         };
     }
 };
+
