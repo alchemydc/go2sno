@@ -127,6 +127,8 @@ export interface RoadWeatherStation {
 }
 
 // Default districts for winter driving in Sierra Nevada
+// Note: District 10 currently has malformed JSON (as of Dec 2025), but is included
+// so the API will automatically work once Caltrans fixes the upstream data issue
 const DEFAULT_DISTRICTS = ['3', '9', '10'];
 
 function parseTemperature(temp: string): number {
@@ -215,7 +217,11 @@ async function fetchDistrictRWIS(district: string): Promise<RoadWeatherStation[]
                 };
             });
     } catch (error) {
-        console.error(`Error fetching RWIS for district ${district}:`, error);
+        if (error instanceof SyntaxError) {
+            console.error(`RWIS data for district ${district} contains invalid JSON. This is a known issue with Caltrans API. Skipping district ${district}.`);
+        } else {
+            console.error(`Error fetching RWIS for district ${district}:`, error);
+        }
         return [];
     }
 }
