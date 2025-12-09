@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '../../../utils/logger';
 
 // Caltrans CWWP2 API response types
 interface CaltransLocation {
@@ -54,7 +55,7 @@ async function fetchDistrictCameras(district: string): Promise<Camera[]> {
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch district ${district}: ${response.statusText}`);
+            logger.error(`Failed to fetch district ${district}: ${response.statusText}`);
             return [];
         }
 
@@ -72,7 +73,7 @@ async function fetchDistrictCameras(district: string): Promise<Camera[]> {
                 longitude: parseFloat(cctv.location.longitude),
             }));
     } catch (error) {
-        console.error(`Error fetching district ${district}:`, error);
+        logger.error(`Error fetching district ${district}:`, error);
         return [];
     }
 }
@@ -97,7 +98,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(cameras);
     } catch (error) {
-        console.error('Error in caltrans-cctv API route:', error);
+        logger.error('Error in caltrans-cctv API route:', error);
         return NextResponse.json(
             { error: 'Failed to fetch camera data' },
             { status: 500 }

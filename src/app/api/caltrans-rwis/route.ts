@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '../../../utils/logger';
 
 // Caltrans CWWP2 RWIS API response types
 interface RWISLocation {
@@ -164,7 +165,7 @@ async function fetchDistrictRWIS(district: string): Promise<RoadWeatherStation[]
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch RWIS for district ${district}: ${response.statusText}`);
+            logger.error(`Failed to fetch RWIS for district ${district}: ${response.statusText}`);
             return [];
         }
 
@@ -218,9 +219,9 @@ async function fetchDistrictRWIS(district: string): Promise<RoadWeatherStation[]
             });
     } catch (error) {
         if (error instanceof SyntaxError) {
-            console.error(`RWIS data for district ${district} contains invalid JSON. This is a known issue with Caltrans API. Skipping district ${district}.`);
+            logger.error(`RWIS data for district ${district} contains invalid JSON. This is a known issue with Caltrans API. Skipping district ${district}.`);
         } else {
-            console.error(`Error fetching RWIS for district ${district}:`, error);
+            logger.error(`Error fetching RWIS for district ${district}:`, error);
         }
         return [];
     }
@@ -246,7 +247,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(stations);
     } catch (error) {
-        console.error('Error in caltrans-rwis API route:', error);
+        logger.error('Error in caltrans-rwis API route:', error);
         return NextResponse.json(
             { error: 'Failed to fetch RWIS data' },
             { status: 500 }

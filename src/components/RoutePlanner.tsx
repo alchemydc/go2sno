@@ -115,7 +115,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     // Update map with route and alerts
     useEffect(() => {
         if (!map.current) return;
-        // TODO: move all the console.logging to DEBUG mode
+
         logger.debug('RoutePlanner: Effect triggered');
         logger.debug('RoutePlanner: Incidents count:', incidents.length);
         logger.debug('RoutePlanner: Conditions count:', conditions.length);

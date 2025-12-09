@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '../../../utils/logger';
 
 // Caltrans CWWP2 Chain Control API response types
 interface CaltransLocation {
@@ -67,7 +68,7 @@ async function fetchDistrictChainControls(district: string): Promise<RoadConditi
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch chain control for district ${district}: ${response.statusText}`);
+            logger.error(`Failed to fetch chain control for district ${district}: ${response.statusText}`);
             return [];
         }
 
@@ -89,7 +90,7 @@ async function fetchDistrictChainControls(district: string): Promise<RoadConditi
                 },
             }));
     } catch (error) {
-        console.error(`Error fetching chain control for district ${district}:`, error);
+        logger.error(`Error fetching chain control for district ${district}:`, error);
         return [];
     }
 }
@@ -114,7 +115,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(conditions);
     } catch (error) {
-        console.error('Error in caltrans-chain-control API route:', error);
+        logger.error('Error in caltrans-chain-control API route:', error);
         return NextResponse.json(
             { error: 'Failed to fetch chain control data' },
             { status: 500 }
