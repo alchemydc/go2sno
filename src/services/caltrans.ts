@@ -49,31 +49,21 @@ async function fetchKmlAsGeoJson(url: string) {
     }
 }
 
-export const getCameras = async (): Promise<Camera[]> => {
+export const getCameras = async (districts?: string[]): Promise<Camera[]> => {
     logger.info('Fetching Caltrans cameras...');
-    const data = await fetchKmlAsGeoJson(FEEDS.cctv);
 
-    const cameras = data.features.map((f: any) => {
-        // Caltrans KML descriptions contain HTML. 
-        // You must parse f.properties.description to extract the <img> src.
-        // Example description: 
-        // "... <img src="https://cctv.dot.ca.gov/cctv/img/camera.jpg"> ..."
+    // Build API URL with optional districts parameter
+    const url = new URL('/api/caltrans-cctv', window.location.origin);
+    if (districts && districts.length > 0) {
+        url.searchParams.set('districts', districts.join(','));
+    }
 
-        const description = f.properties.description || '';
-        const imgMatch = description.match(/src="([^"]+)"/);
-        const url = imgMatch ? imgMatch[1] : null;
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+        throw new Error(`Failed to fetch cameras: ${response.statusText}`);
+    }
 
-        return {
-            id: f.properties.name, // Use name as ID (e.g., "C020")
-            name: f.properties.name,
-            // Caltrans cameras are usually static refreshable images, not HLS streams.
-            url: url, // Treat image as the "stream" for now
-            thumbnailUrl: url,
-            latitude: f.geometry?.coordinates?.[1],
-            longitude: f.geometry?.coordinates?.[0]
-        };
-    }).filter((c: any) => c.url); // Filter out cameras with no image
-
+    const cameras: Camera[] = await response.json();
     logger.info(`Found ${cameras.length} Caltrans cameras`);
     return cameras;
 };
