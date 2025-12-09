@@ -9,7 +9,8 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 *   **Road Cameras:** Live HLS streaming video feeds from CDOT cameras along the route.
 *   **Weather:** Real-time weather data for the selected destination (NWS API).
 *   **Avalanche Forecasts:**  Avalanche forecast for selected destination from CAIC.
-*   **Resort Status:** Sortable list of resort snow reports and lift status (currently using mock data).
+*   **Resort Status:** Sortable list of resort snow reports and lift status (currently using mock data for lifts).
+    *   *Note:* Real-time weather and "24h Snow" provided by [Open-Meteo](https://open-meteo.com/). The "24h Snow" value represents the *forecasted* snowfall for the current day.
 *   **Dark Mode:** Full dark theme support.
 
 ## Work Planned

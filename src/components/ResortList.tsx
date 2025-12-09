@@ -61,9 +61,16 @@ export const ResortList: React.FC = () => {
                                 {resort.liftsOpen}/{resort.totalLifts} Lifts Open
                             </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold' }}>
-                            <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
-                            {resort.snow24h}"
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold', justifyContent: 'flex-end' }}>
+                                <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
+                                {resort.snow24h}"
+                            </div>
+                            {resort.temp !== undefined && (
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                    {resort.temp}°F
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}
