@@ -68,25 +68,21 @@ export const getCameras = async (districts?: string[]): Promise<Camera[]> => {
     return cameras;
 };
 
-export const getRoadConditions = async (): Promise<RoadCondition[]> => {
+export const getRoadConditions = async (districts?: string[]): Promise<RoadCondition[]> => {
     logger.info('Fetching Caltrans road conditions...');
-    const data = await fetchKmlAsGeoJson(FEEDS.chain);
 
-    const conditions = data.features.map((f: any) => ({
-        id: f.properties.name,
-        type: 'ChainControl',
-        properties: {
-            type: 'Chain Control',
-            routeName: f.properties.name, // e.g., "I-80"
-            // Caltrans puts status text in description (e.g., "R-2 Chains Required...")
-            // Strip HTML tags using regex
-            primaryLatitude: f.geometry?.coordinates?.[1],
-            primaryLongitude: f.geometry?.coordinates?.[0],
-            currentConditions: [{
-                conditionDescription: f.properties.description?.replace(/<[^>]*>?/gm, '') // Strip HTML
-            }]
-        }
-    }));
+    // Build API URL with optional districts parameter
+    const url = new URL('/api/caltrans-chain-control', window.location.origin);
+    if (districts && districts.length > 0) {
+        url.searchParams.set('districts', districts.join(','));
+    }
+
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+        throw new Error(`Failed to fetch road conditions: ${response.statusText}`);
+    }
+
+    const conditions: RoadCondition[] = await response.json();
     logger.info(`Found ${conditions.length} Caltrans road conditions`);
     return conditions;
 };
@@ -108,4 +104,60 @@ export const getIncidents = async (): Promise<Incident[]> => {
     }));
     logger.info(`Found ${incidents.length} Caltrans incidents`);
     return incidents;
+};
+
+export interface RoadWeatherStation {
+    id: string;
+    name: string;
+    location: {
+        latitude: number;
+        longitude: number;
+        route: string;
+        nearbyPlace: string;
+        elevation: number;
+    };
+    timestamp: {
+        date: string;
+        time: string;
+        epoch: number;
+    };
+    weather: {
+        airTemperature: number;
+        dewpoint: number;
+        humidity: number;
+        visibility: number;
+        windSpeed: number;
+        windDirection: number;
+        windGust: number;
+    };
+    surface: {
+        status: string;
+        temperature: number;
+        freezePoint: number;
+        blackIceWarning: boolean;
+    };
+    precipitation: {
+        isPresent: boolean;
+        rate: number;
+        last24Hours: number;
+    };
+}
+
+export const getRoadWeatherStations = async (districts?: string[]): Promise<RoadWeatherStation[]> => {
+    logger.info('Fetching Caltrans road weather stations...');
+
+    // Build API URL with optional districts parameter
+    const url = new URL('/api/caltrans-rwis', window.location.origin);
+    if (districts && districts.length > 0) {
+        url.searchParams.set('districts', districts.join(','));
+    }
+
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+        throw new Error(`Failed to fetch road weather stations: ${response.statusText}`);
+    }
+
+    const stations: RoadWeatherStation[] = await response.json();
+    logger.info(`Found ${stations.length} Caltrans road weather stations`);
+    return stations;
 };
