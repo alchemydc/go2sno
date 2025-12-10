@@ -27,11 +27,10 @@ describe('ResortList', () => {
 
     beforeEach(() => {
         vi.resetAllMocks();
-        vi.mocked(resortsService.getResorts).mockResolvedValue(mockResorts);
     });
 
     it('should fetch and render resorts', async () => {
-        render(<ResortList />);
+        render(<ResortList resorts={mockResorts} />);
 
         await waitFor(() => {
             expect(screen.getByText('Resort Status')).toBeInTheDocument();
@@ -42,7 +41,7 @@ describe('ResortList', () => {
     });
 
     it('should display snow information', async () => {
-        render(<ResortList />);
+        render(<ResortList resorts={mockResorts} />);
 
         await waitFor(() => {
             expect(screen.getByText('5"')).toBeInTheDocument();
@@ -50,7 +49,7 @@ describe('ResortList', () => {
     });
 
     it('should sort by snow by default (descending)', async () => {
-        render(<ResortList />);
+        render(<ResortList resorts={mockResorts} />);
 
         await waitFor(() => {
             const resortNames = screen.getAllByRole('heading', { level: 3 });
@@ -61,7 +60,7 @@ describe('ResortList', () => {
     });
 
     it('should sort by name when selected', async () => {
-        render(<ResortList />);
+        render(<ResortList resorts={mockResorts} />);
 
         await waitFor(() => {
             expect(screen.getByText('Breckenridge')).toBeInTheDocument();

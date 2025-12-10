@@ -4,23 +4,27 @@ import type { Resort } from '../services/resorts';
 import { Snowflake, Mountain } from 'lucide-react';
 import { useRegion } from '../context/RegionContext';
 
-export const ResortList: React.FC = () => {
+interface ResortListProps {
+    resorts: Resort[];
+}
+
+export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts }) => {
     const { selectedRegion } = useRegion();
-    const [resorts, setResorts] = useState<Resort[]>([]);
+    const [sortedResorts, setSortedResorts] = useState<Resort[]>([]);
     const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
 
     useEffect(() => {
-        if (!selectedRegion) {
-            setResorts([]);
+        if (!initialResorts.length) {
+            setSortedResorts([]);
             return;
         }
 
-        getResorts(selectedRegion.id).then((data) => {
-            // Resort service now handles filtering by region
-            const sorted = [...data].sort((a, b) => b.snow24h - a.snow24h);
-            setResorts(sorted);
+        const sorted = [...initialResorts].sort((a, b) => {
+            if (sortBy === 'snow') return b.snow24h - a.snow24h;
+            return a.name.localeCompare(b.name);
         });
-    }, [selectedRegion?.id]);
+        setSortedResorts(sorted);
+    }, [initialResorts, sortBy]);
 
     if (!selectedRegion) {
         return null;
@@ -28,11 +32,6 @@ export const ResortList: React.FC = () => {
 
     const handleSort = (type: 'snow' | 'name') => {
         setSortBy(type);
-        const sorted = [...resorts].sort((a, b) => {
-            if (type === 'snow') return b.snow24h - a.snow24h;
-            return a.name.localeCompare(b.name);
-        });
-        setResorts(sorted);
     };
 
     return (
@@ -54,7 +53,7 @@ export const ResortList: React.FC = () => {
                 </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {resorts.map((resort) => (
+                {sortedResorts.map((resort) => (
                     <div key={resort.id} style={{
                         display: 'flex',
                         justifyContent: 'space-between',

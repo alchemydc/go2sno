@@ -9,8 +9,6 @@ import { Region } from '../config/regions';
 interface RouteStats {
     travelTime: string;
     delay: string;
-    summitTemp: string;
-    newSnow: string;
 }
 
 // Coordinates for locations
@@ -38,6 +36,7 @@ interface RoutePlannerProps {
     regions: Region[];
     selectedRegionId: string;
     onRegionChange: (regionId: string) => void;
+    snowForecast?: number;
 }
 
 export const RoutePlanner: React.FC<RoutePlannerProps> = ({
@@ -52,7 +51,8 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     conditions = [],
     regions,
     selectedRegionId,
-    onRegionChange
+    onRegionChange,
+    snowForecast
 }) => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<maplibregl.Map | null>(null);
@@ -60,9 +60,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     // destination is now controlled by parent
     const [stats, setStats] = useState<RouteStats>({
         travelTime: '-',
-        delay: '-',
-        summitTemp: '-',
-        newSnow: '-'
+        delay: '-'
     });
 
     const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
@@ -72,9 +70,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             if (!from || !destination) {
                 setStats({
                     travelTime: '-',
-                    delay: '-',
-                    summitTemp: '-',
-                    newSnow: '-'
+                    delay: '-'
                 });
                 setRouteGeoJSON(null);
                 onRouteUpdate(null);
@@ -505,7 +501,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             {from && destination && (
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
                     gap: '1rem',
                     marginBottom: '1rem',
                     padding: '1rem',
@@ -522,12 +518,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Delay</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>{stats.summitTemp}</div>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Summit</div>
-                    </div>
-                    <div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.newSnow}</div>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Snowfall</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>
+                            {snowForecast !== undefined ? `${snowForecast}"` : '-'}
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>New Snow</div>
                     </div>
                 </div>
             )}

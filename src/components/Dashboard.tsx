@@ -4,6 +4,8 @@ import { logger } from '../utils/logger';
 import { RoutePlanner } from './RoutePlanner';
 import { CameraGrid } from './CameraGrid';
 import { ResortList } from './ResortList';
+import { getResorts } from '../services/resorts';
+import type { Resort } from '../services/resorts';
 import { IncidentsCard } from './IncidentsCard';
 import { AvalancheReportCard } from './AvalancheReportCard';
 import { getWeather } from '../services/weather';
@@ -34,6 +36,7 @@ export const Dashboard: React.FC = () => {
     const [loadingAlerts, setLoadingAlerts] = useState(true);
     const [allCameras, setAllCameras] = useState<Camera[]>([]);
     const [cameras, setCameras] = useState<Camera[]>([]);
+    const [resorts, setResorts] = useState<Resort[]>([]);
     const [showAllCameras, setShowAllCameras] = useState(false);
 
     const locations = React.useMemo(() => {
@@ -77,15 +80,17 @@ export const Dashboard: React.FC = () => {
             setLoadingAlerts(true);
             try {
                 const service = getRoadService(selectedRegion.id);
-                const [incidentsData, conditionsData, camerasData] = await Promise.all([
+                const [incidentsData, conditionsData, camerasData, resortsData] = await Promise.all([
                     service.getIncidents(),
                     service.getRoadConditions(),
                     selectedRegion.id === 'co' ? getStreamingCameras() :
-                        selectedRegion.id === 'canv' ? getCaltransCameras() : Promise.resolve([])
+                        selectedRegion.id === 'canv' ? getCaltransCameras() : Promise.resolve([]),
+                    getResorts(selectedRegion.id)
                 ]);
                 setAllIncidents(incidentsData);
                 setAllConditions(conditionsData);
                 setAllCameras(camerasData);
+                setResorts(resortsData);
                 logger.debug('Camera stats: Fetched from API', {
                     region: selectedRegion.id,
                     count: camerasData.length
@@ -201,6 +206,7 @@ export const Dashboard: React.FC = () => {
                         regions={regions}
                         selectedRegionId={selectedRegion?.id || ''}
                         onRegionChange={setRegionId}
+                        snowForecast={resorts.find(r => r.id === destination)?.snow24h}
                     />
 
                     {destination && (
@@ -258,17 +264,19 @@ export const Dashboard: React.FC = () => {
                                 <AvalancheReportCard destination={destination} />
                             </div>
 
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <IncidentsCard
-                                    incidents={incidents}
-                                    conditions={conditions}
-                                    loading={loadingAlerts}
-                                />
-                            </div>
+                            {(incidents.length > 0 || conditions.length > 0) && (
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <IncidentsCard
+                                        incidents={incidents}
+                                        conditions={conditions}
+                                        loading={loadingAlerts}
+                                    />
+                                </div>
+                            )}
                         </>
                     )}
 
-                    <ResortList />
+                    <ResortList resorts={resorts} />
                 </div>
 
             </div>

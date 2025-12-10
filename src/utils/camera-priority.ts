@@ -30,7 +30,7 @@ export const prioritizeCameras = (
     // Helper to check if a condition is "adverse" (snow, ice, etc)
     const isAdverseCondition = (condition: RoadCondition): boolean => {
         const desc = condition.properties.currentConditions?.[0]?.conditionDescription?.toLowerCase() || '';
-        return desc.includes('snow') || desc.includes('ice') || desc.includes('wet') || desc.includes('closed');
+        return desc.includes('snow') || desc.includes('ice') || desc.includes('icy') || desc.includes('wet') || desc.includes('closed');
     };
 
     const scoredCameras = cameras.map(camera => {
