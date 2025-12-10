@@ -3,8 +3,8 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { AvalancheReportCard } from './AvalancheReportCard';
 import { logger } from '../utils/logger';
-import { Navigation } from 'lucide-react';
-import { Region } from '../config/regions';
+import type { Region } from '../config/regions';
+import { ArrowLeft, Navigation2, AlertCircle, AlertTriangle, Loader2, ArrowRightLeft, Navigation } from 'lucide-react';
 
 interface RouteStats {
     travelTime: string;
@@ -481,8 +481,8 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ flex: 1 }}>
+            <div className="route-inputs-grid">
+                <div style={{ flex: 1, width: '100%' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>From</label>
                     <select
                         value={from}
@@ -498,7 +498,22 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         ))}
                     </select>
                 </div>
-                <div style={{ flex: 1 }}>
+
+                <div
+                    className="route-swap-btn"
+                    onClick={() => {
+                        const temp = from;
+                        onFromChange(destination);
+                        onDestinationChange(temp);
+                    }}
+                    title="Swap Origin and Destination"
+                    role="button"
+                    tabIndex={0}
+                >
+                    <ArrowRightLeft size={20} />
+                </div>
+
+                <div style={{ flex: 1, width: '100%' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>To</label>
                     <select
                         value={destination}
