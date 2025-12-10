@@ -10,12 +10,21 @@ export const ResortList: React.FC = () => {
     const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
 
     useEffect(() => {
+        if (!selectedRegion) {
+            setResorts([]);
+            return;
+        }
+
         getResorts(selectedRegion.id).then((data) => {
             // Resort service now handles filtering by region
             const sorted = [...data].sort((a, b) => b.snow24h - a.snow24h);
             setResorts(sorted);
         });
-    }, [selectedRegion.id]);
+    }, [selectedRegion?.id]);
+
+    if (!selectedRegion) {
+        return null;
+    }
 
     const handleSort = (type: 'snow' | 'name') => {
         setSortBy(type);

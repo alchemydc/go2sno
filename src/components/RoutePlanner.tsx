@@ -59,7 +59,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     // from is now controlled by parent
     // destination is now controlled by parent
     const [stats, setStats] = useState<RouteStats>({
-        travelTime: 'Loading...',
+        travelTime: '-',
         delay: '-',
         summitTemp: '-',
         newSnow: '-'
@@ -69,11 +69,25 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
     useEffect(() => {
         const fetchStats = async () => {
+            if (!from || !destination) {
+                setStats({
+                    travelTime: '-',
+                    delay: '-',
+                    summitTemp: '-',
+                    newSnow: '-'
+                });
+                setRouteGeoJSON(null);
+                onRouteUpdate(null);
+                return;
+            }
+
             setStats(prev => ({ ...prev, travelTime: 'Loading...', delay: '-' }));
 
             try {
                 const originCoords = locations[from];
                 const destCoords = locations[destination];
+
+                if (!originCoords || !destCoords) return;
 
                 const response = await fetch(`/api/route?origin=${originCoords}&destination=${destCoords}`);
                 const data = await response.json();
@@ -161,6 +175,13 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 map.current.fitBounds(bounds, {
                     padding: 50
                 });
+            } else {
+                if (map.current.getLayer('route')) {
+                    map.current.removeLayer('route');
+                }
+                if (map.current.getSource('route')) {
+                    map.current.removeSource('route');
+                }
             }
 
             // Incidents Layer
@@ -388,8 +409,8 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         }
                     ]
                 },
-                center: [-105.6, 39.7], // Center roughly between Denver and Frisco.  Will need to rethink this for multi-region
-                zoom: 8
+                center: [-98.5795, 39.8283], // Center of US
+                zoom: 3
             });
 
             // @ts-ignore
@@ -402,6 +423,19 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             });
         }
     }, []);
+
+    // Update map view when region changes
+    useEffect(() => {
+        if (!map.current || !selectedRegionId) return;
+
+        const region = regions.find(r => r.id === selectedRegionId);
+        if (region) {
+            map.current.flyTo({
+                center: region.center,
+                zoom: region.zoom
+            });
+        }
+    }, [selectedRegionId, regions]);
 
     return (
         <div className="card">
@@ -422,6 +456,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                             fontSize: '0.875rem'
                         }}
                     >
+                        <option value="" disabled>Select Region</option>
                         {regions.map(region => (
                             <option key={region.id} value={region.id}>
                                 {region.name}
@@ -438,7 +473,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         value={from}
                         onChange={(e) => onFromChange(e.target.value)}
                         style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
+                        disabled={!selectedRegionId}
                     >
+                        <option value="" disabled>Select Origin</option>
                         {locationOptions.map(loc => (
                             <option key={loc.id} value={loc.id} disabled={destination === loc.id}>
                                 {loc.name}
@@ -452,7 +489,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         value={destination}
                         onChange={(e) => onDestinationChange(e.target.value)}
                         style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
+                        disabled={!selectedRegionId}
                     >
+                        <option value="" disabled>Select Destination</option>
                         {locationOptions.map(loc => (
                             <option key={loc.id} value={loc.id} disabled={from === loc.id}>
                                 {loc.name}
@@ -463,33 +502,35 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             </div>
 
             {/* Stats Card */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '1rem',
-                marginBottom: '1rem',
-                padding: '1rem',
-                backgroundColor: '#f3f4f6',
-                borderRadius: 'var(--radius-md)',
-                textAlign: 'center'
-            }}>
-                <div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>{stats.travelTime}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Travel Time</div>
+            {from && destination && (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '1rem',
+                    padding: '1rem',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: 'var(--radius-md)',
+                    textAlign: 'center'
+                }}>
+                    <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>{stats.travelTime}</div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Travel Time</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: stats.delay === 'None' ? '#059669' : '#dc2626' }}>{stats.delay}</div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Delay</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>{stats.summitTemp}</div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Summit</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.newSnow}</div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Snowfall</div>
+                    </div>
                 </div>
-                <div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: stats.delay === 'None' ? '#059669' : '#dc2626' }}>{stats.delay}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Delay</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>{stats.summitTemp}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Summit</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.newSnow}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Snowfall</div>
-                </div>
-            </div>
+            )}
 
             <div ref={mapContainer} style={{ width: '100%', height: '400px', borderRadius: 'var(--radius-md)' }} />
         </div>

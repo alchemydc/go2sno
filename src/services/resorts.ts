@@ -42,6 +42,9 @@ const RESORT_LOCATIONS = [
     // Tahoe
     { id: 'heavenly', name: 'Heavenly', totalLifts: 28, lat: 38.9353, lon: -119.9400 },
     { id: 'palisades', name: 'Palisades Tahoe', totalLifts: 42, lat: 39.1970, lon: -120.2356 },
+    { id: 'alpinemeadows', name: 'Alpine Meadows', totalLifts: 13, lat: 39.1644, lon: -120.2384 },
+    { id: 'sugarbowl', name: 'Sugar Bowl', totalLifts: 12, lat: 39.3090, lon: -120.3340 },
+    { id: 'homewood', name: 'Homewood', totalLifts: 8, lat: 39.0779, lon: -120.1601 },
     { id: 'northstar', name: 'Northstar', totalLifts: 20, lat: 39.2730, lon: -120.1192 },
     { id: 'kirkwood', name: 'Kirkwood', totalLifts: 15, lat: 38.6810, lon: -120.0659 },
     { id: 'mammoth', name: 'Mammoth Mountain', totalLifts: 25, lat: 37.6485, lon: -118.9721 },

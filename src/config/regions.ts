@@ -101,11 +101,14 @@ export const REGIONS: Record<string, Region> = {
             { id: 'incline', name: 'Incline Village', coordinates: '39.2514,-119.9772', type: 'town' },
             { id: 'heavenly', name: 'Heavenly', coordinates: '38.9352,-119.9403', type: 'resort' },
             { id: 'palisades', name: 'Palisades Tahoe', coordinates: '39.1970,-120.2356', type: 'resort' },
+            { id: 'alpinemeadows', name: 'Alpine Meadows', coordinates: '39.1644,-120.2384', type: 'resort' },
+            { id: 'sugarbowl', name: 'Sugar Bowl', coordinates: '39.3090,-120.3340', type: 'resort' },
+            { id: 'homewood', name: 'Homewood', coordinates: '39.0779,-120.1601', type: 'resort' },
             { id: 'northstar', name: 'Northstar', coordinates: '39.2730,-120.1192', type: 'resort' },
             { id: 'kirkwood', name: 'Kirkwood', coordinates: '38.6810,-120.0659', type: 'resort' },
             { id: 'mammoth', name: 'Mammoth', coordinates: '37.6485,-118.9721', type: 'resort' },
         ],
-        resortIds: ['heavenly', 'palisades', 'northstar', 'kirkwood', 'mammoth'],
+        resortIds: ['heavenly', 'palisades', 'alpinemeadows', 'sugarbowl', 'homewood', 'northstar', 'kirkwood', 'mammoth'],
         services: {
             weather: true,
             roads: false, // Future: Caltrans

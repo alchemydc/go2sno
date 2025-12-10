@@ -17,6 +17,8 @@ import { getRoadService } from '../services/factory';
 import { getAllRegions } from '../config/regions';
 import { getCameras as getCaltransCameras } from '../services/caltrans';
 
+const regions = getAllRegions();
+
 export const Dashboard: React.FC = () => {
     const { selectedRegion, setRegionId } = useRegion();
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
@@ -31,44 +33,50 @@ export const Dashboard: React.FC = () => {
     const [allCameras, setAllCameras] = useState<Camera[]>([]);
     const [cameras, setCameras] = useState<Camera[]>([]);
 
-    const roadService = getRoadService(selectedRegion.id);
-    const locations = selectedRegion.locations.reduce((acc, loc) => {
-        acc[loc.id] = loc.coordinates;
-        return acc;
-    }, {} as Record<string, string>);
+    const locations = React.useMemo(() => {
+        return selectedRegion ? selectedRegion.locations.reduce((acc, loc) => {
+            acc[loc.id] = loc.coordinates;
+            return acc;
+        }, {} as Record<string, string>) : {};
+    }, [selectedRegion]);
 
     // Reset from/destination when region changes
     useEffect(() => {
-        // Set default locations based on region
-        const gatewayLocations = selectedRegion.locations.filter(loc => loc.type === 'gateway');
-        const resortLocations = selectedRegion.locations.filter(loc => loc.type === 'resort');
-
-        // Default "from" to first gateway or first location
-        const defaultFrom = selectedRegion.defaultOrigin || gatewayLocations[0]?.id || selectedRegion.locations[0]?.id || '';
-        // Default "to" to first resort or second location
-        const defaultTo = selectedRegion.defaultDestination || resortLocations[0]?.id || selectedRegion.locations[1]?.id || '';
-
-        setFrom(defaultFrom);
-        setDestination(defaultTo);
-    }, [selectedRegion.id]);
+        // Clear selections when region changes
+        setFrom('');
+        setDestination('');
+        setWeather(null);
+        setRouteGeoJSON(null);
+    }, [selectedRegion?.id]);
 
     useEffect(() => {
+        if (!destination || !locations[destination]) return;
+
         // Get coordinates for selected destination
         const coords = locations[destination];
         if (coords) {
             const [lat, lon] = coords.split(',').map(Number);
             getWeather(lat, lon).then(setWeather);
         }
-    }, [destination]);
+    }, [destination, locations]);
 
-    // Fetch alerts and cameras when region changes
+    // Fetch alerts and cameras when region or destination changes
     useEffect(() => {
+        if (!selectedRegion || !destination) {
+            setAllIncidents([]);
+            setAllConditions([]);
+            setAllCameras([]);
+            setLoadingAlerts(false);
+            return;
+        }
+
         const fetchData = async () => {
             setLoadingAlerts(true);
             try {
+                const service = getRoadService(selectedRegion.id);
                 const [incidentsData, conditionsData, camerasData] = await Promise.all([
-                    roadService.getIncidents(),
-                    roadService.getRoadConditions(),
+                    service.getIncidents(),
+                    service.getRoadConditions(),
                     selectedRegion.id === 'co' ? getStreamingCameras() :
                         selectedRegion.id === 'canv' ? getCaltransCameras() : Promise.resolve([])
                 ]);
@@ -82,7 +90,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         fetchData();
-    }, [selectedRegion.id]);
+    }, [selectedRegion?.id, destination]);
 
     // Filter alerts and cameras when route or data changes
     useEffect(() => {
@@ -152,7 +160,7 @@ export const Dashboard: React.FC = () => {
                 <div style={{ gridColumn: 'span 2' }}>
                     <RoutePlanner
                         locations={locations}
-                        locationOptions={selectedRegion.locations}
+                        locationOptions={selectedRegion?.locations || []}
                         destination={destination}
                         onDestinationChange={setDestination}
                         from={from}
@@ -160,44 +168,50 @@ export const Dashboard: React.FC = () => {
                         onRouteUpdate={setRouteGeoJSON}
                         incidents={incidents}
                         conditions={conditions}
-                        regions={getAllRegions()}
-                        selectedRegionId={selectedRegion.id}
+                        regions={regions}
+                        selectedRegionId={selectedRegion?.id || ''}
                         onRegionChange={setRegionId}
                     />
 
-                    <CameraGrid cameras={cameras} />
+                    {destination && (
+                        <CameraGrid cameras={cameras} loading={loadingAlerts} />
+                    )}
                 </div>
 
                 {/* Sidebar: Weather, Avalanche Conditions, Road Conditions & Incidents and Resort Reports */}
                 <div>
-                    {/* Weather Card */}
-                    <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                            <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
-                            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
-                        </div>
-                        {weather ? (
-                            <div>
-                                <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
-                                <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
-                                <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
+                    {destination && (
+                        <>
+                            {/* Weather Card */}
+                            <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: '1.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
+                                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
+                                </div>
+                                {weather ? (
+                                    <div>
+                                        <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
+                                        <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
+                                        <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
+                                    </div>
+                                ) : (
+                                    <div>Loading weather...</div>
+                                )}
                             </div>
-                        ) : (
-                            <div>Loading weather...</div>
-                        )}
-                    </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <AvalancheReportCard destination={destination} />
-                    </div>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <AvalancheReportCard destination={destination} />
+                            </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <IncidentsCard
-                            incidents={incidents}
-                            conditions={conditions}
-                            loading={loadingAlerts}
-                        />
-                    </div>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <IncidentsCard
+                                    incidents={incidents}
+                                    conditions={conditions}
+                                    loading={loadingAlerts}
+                                />
+                            </div>
+                        </>
+                    )}
 
                     <ResortList />
                 </div>

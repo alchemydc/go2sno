@@ -14,6 +14,12 @@ export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destin
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!destination || !selectedRegion) {
+            setForecast(null);
+            setLoading(false);
+            return;
+        }
+
         const fetchForecast = async () => {
             setLoading(true);
             const avalancheService = getAvalancheService(selectedRegion.id);
@@ -23,7 +29,7 @@ export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destin
         };
 
         fetchForecast();
-    }, [destination, selectedRegion.id]);
+    }, [destination, selectedRegion?.id]);
 
     if (loading) {
         return (
