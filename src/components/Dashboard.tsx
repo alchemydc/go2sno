@@ -46,13 +46,20 @@ export const Dashboard: React.FC = () => {
         }, {} as Record<string, string>) : {};
     }, [selectedRegion]);
 
-    // Reset from/destination when region changes
+    // Reset from/destination and clear data when region changes
     useEffect(() => {
-        // Clear selections when region changes
+        // Clear selections and data when region changes
         setFrom('');
         setDestination('');
         setWeather(null);
         setRouteGeoJSON(null);
+        setAllIncidents([]);
+        setAllConditions([]);
+        setAllCameras([]);
+        setIncidents([]);
+        setConditions([]);
+        setCameras([]);
+        // Note: We don't clear resorts here because the new region will immediately trigger a fetch
     }, [selectedRegion?.id]);
 
     useEffect(() => {
@@ -66,12 +73,39 @@ export const Dashboard: React.FC = () => {
         }
     }, [destination, locations]);
 
-    // Fetch alerts and cameras when region or destination changes
+    // Fetch resorts when region changes
+    useEffect(() => {
+        if (!selectedRegion) {
+            setResorts([]);
+            return;
+        }
+
+        const fetchResorts = async () => {
+            logger.debug(`Fetching resorts for region: ${selectedRegion.id}`, {
+                region: selectedRegion.id,
+                timestamp: new Date().toISOString()
+            });
+
+            try {
+                const resortsData = await getResorts(selectedRegion.id);
+                setResorts(resortsData);
+                logger.debug(`Successfully fetched ${resortsData.length} resorts for region ${selectedRegion.id}`, {
+                    region: selectedRegion.id,
+                    count: resortsData.length,
+                    resorts: resortsData.map(r => r.name)
+                });
+            } catch (error) {
+                logger.error('Error loading resorts:', error);
+            }
+        };
+
+        fetchResorts();
+    }, [selectedRegion?.id]);
+
+    // Fetch alerts and cameras when destination changes (and region is selected)
     useEffect(() => {
         if (!selectedRegion || !destination) {
-            setAllIncidents([]);
-            setAllConditions([]);
-            setAllCameras([]);
+            // cleared in the region change effect or initial state
             setLoadingAlerts(false);
             return;
         }
@@ -80,17 +114,15 @@ export const Dashboard: React.FC = () => {
             setLoadingAlerts(true);
             try {
                 const service = getRoadService(selectedRegion.id);
-                const [incidentsData, conditionsData, camerasData, resortsData] = await Promise.all([
+                const [incidentsData, conditionsData, camerasData] = await Promise.all([
                     service.getIncidents(),
                     service.getRoadConditions(),
                     selectedRegion.id === 'co' ? getStreamingCameras() :
                         selectedRegion.id === 'canv' ? getCaltransCameras() : Promise.resolve([]),
-                    getResorts(selectedRegion.id)
                 ]);
                 setAllIncidents(incidentsData);
                 setAllConditions(conditionsData);
                 setAllCameras(camerasData);
-                setResorts(resortsData);
                 logger.debug('Camera stats: Fetched from API', {
                     region: selectedRegion.id,
                     count: camerasData.length

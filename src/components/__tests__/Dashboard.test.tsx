@@ -131,4 +131,37 @@ describe('Dashboard', () => {
             expect(screen.queryByText('All Route Cameras')).not.toBeInTheDocument();
         });
     });
+
+    it('should fetch resorts on region selection without route', async () => {
+        render(<Dashboard />);
+
+        // Wait for resorts to be fetched immediately upon load (mocked region selection)
+        await waitFor(() => {
+            expect(resortsService.getResorts).toHaveBeenCalledWith('co');
+        });
+    });
+
+    it('should NOT fetch road data until route is selected', async () => {
+        render(<Dashboard />);
+
+        // Wait for initial render
+        await waitFor(() => {
+            expect(screen.getByText('go2sno')).toBeInTheDocument();
+        });
+
+        // Assert calls did NOT happen yet
+        expect(cdotService.getIncidents).not.toHaveBeenCalled();
+        expect(cdotService.getRoadConditions).not.toHaveBeenCalled();
+        expect(cdotService.getStreamingCameras).not.toHaveBeenCalled();
+
+        // Now trigger route selection
+        fireEvent.click(screen.getByText('Select Route'));
+
+        // Now they should be called
+        await waitFor(() => {
+            expect(cdotService.getIncidents).toHaveBeenCalled();
+            expect(cdotService.getRoadConditions).toHaveBeenCalled();
+            expect(cdotService.getStreamingCameras).toHaveBeenCalled();
+        });
+    });
 });
