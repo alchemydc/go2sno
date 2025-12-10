@@ -6,7 +6,6 @@ export interface Resort {
     id: string;
     name: string;
     snow24h: number; // in inches
-    liftsOpen: number;
     totalLifts: number;
     lat: number;
     lon: number;
@@ -75,12 +74,8 @@ export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => 
     return filteredResorts.map((resort, index) => {
         const localWeather = weatherData[index];
 
-        // Generate mock lift data (random for now)
-        const mockLiftsOpen = Math.floor(Math.random() * resort.totalLifts);
-
         return {
             ...resort,
-            liftsOpen: mockLiftsOpen,
             // Open-Meteo returns daily arrays. Index 0 is "today".
             snow24h: localWeather?.daily?.snowfall_sum?.[0] || 0,
             temp: localWeather?.current?.temperature_2m,

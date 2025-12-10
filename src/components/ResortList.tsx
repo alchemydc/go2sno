@@ -65,9 +65,7 @@ export const ResortList: React.FC = () => {
                     }}>
                         <div>
                             <h3 style={{ margin: '0 0 0.25rem 0' }}>{resort.name}</h3>
-                            <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                                {resort.liftsOpen}/{resort.totalLifts} Lifts Open
-                            </span>
+
                         </div>
                         <div style={{ textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold', justifyContent: 'flex-end' }}>

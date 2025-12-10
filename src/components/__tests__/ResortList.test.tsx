@@ -20,9 +20,9 @@ vi.mock('../../context/RegionContext', () => ({
 
 describe('ResortList', () => {
     const mockResorts = [
-        { id: 'copper', name: 'Copper Mountain', snow24h: 5, liftsOpen: 20, totalLifts: 24, lat: 39.5, lon: -106.1 },
-        { id: 'breck', name: 'Breckenridge', snow24h: 8, liftsOpen: 30, totalLifts: 35, lat: 39.4, lon: -106.0 },
-        { id: 'abasin', name: 'Arapahoe Basin', snow24h: 3, liftsOpen: 8, totalLifts: 9, lat: 39.6, lon: -105.8 }
+        { id: 'copper', name: 'Copper Mountain', snow24h: 5, totalLifts: 24, lat: 39.5, lon: -106.1 },
+        { id: 'breck', name: 'Breckenridge', snow24h: 8, totalLifts: 35, lat: 39.4, lon: -106.0 },
+        { id: 'abasin', name: 'Arapahoe Basin', snow24h: 3, totalLifts: 9, lat: 39.6, lon: -105.8 }
     ];
 
     beforeEach(() => {
@@ -41,12 +41,11 @@ describe('ResortList', () => {
         });
     });
 
-    it('should display snow and lift information', async () => {
+    it('should display snow information', async () => {
         render(<ResortList />);
 
         await waitFor(() => {
             expect(screen.getByText('5"')).toBeInTheDocument();
-            expect(screen.getByText('20/24 Lifts Open')).toBeInTheDocument();
         });
     });
 

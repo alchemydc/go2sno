@@ -9,16 +9,17 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 *   **Road Cameras:** Live HLS streaming video feeds from CDOT cameras along the route.
 *   **Weather:** Real-time weather data for the selected destination (NWS API).
 *   **Avalanche Forecasts:**  Avalanche forecast for selected destination from CAIC.
-*   **Resort Status:** Sortable list of resort snow reports and lift status (currently using mock data for lifts).
+*   **Resort Status:** Sortable list of resort snow reports.
     *   *Note:* Real-time weather and "24h Snow" provided by [Open-Meteo](https://open-meteo.com/). The "24h Snow" value represents the *forecasted* snowfall for the current day.
+*   **Tahoe Road Conditions:** Integration with California/NV Department of Transportation API for road conditions and cameras. Note that a CORS error is intermittently breaking playback of Caltrans CCTV feeds.
 *   **Dark Mode:** Full dark theme support.
 
 ## Work Planned
 *   **Utah Avalanche Forecasts:** Integration with Utah Avalanche Center API for avalanche forecasts.
 *   **Utah Road Conditions:** Integration with Utah Department of Transportation API for road conditions. 
 *   **Tahoe Avalanche Forecasts:** Integration with Tahoe Avalanche Center API for avalanche forecasts.
-*   **Tahoe Road Conditions:** Integration with California/NV Department of Transportation API for road conditions. (?)
-*   **Real Resort Data:** Integration with resort APIs (e.g., Epic/Ikon) for live lift status and snow reports. (?).  May need to roll our own.
+conditions. (?)
+*   **Real Resort Lift Status:** Integration with resort APIs (e.g., Epic/Ikon) for live lift status and snow reports. Currently difficult due to lack of public APIs; may need to implement a scraper.
 *   **Mobile Optimization:** Improved touch controls and layout refinements for small screens.
 
 
