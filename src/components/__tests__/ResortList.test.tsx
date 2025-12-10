@@ -6,6 +6,18 @@ import { RegionProvider } from '../../context/RegionContext';
 
 vi.mock('../../services/resorts');
 
+// Mock useRegion
+vi.mock('../../context/RegionContext', () => ({
+    useRegion: () => ({
+        selectedRegion: {
+            id: 'co',
+            name: 'Colorado',
+            resortIds: ['copper', 'breck', 'abasin']
+        },
+        setRegionId: vi.fn()
+    })
+}));
+
 describe('ResortList', () => {
     const mockResorts = [
         { id: 'copper', name: 'Copper Mountain', snow24h: 5, liftsOpen: 20, totalLifts: 24, lat: 39.5, lon: -106.1 },
@@ -19,7 +31,7 @@ describe('ResortList', () => {
     });
 
     it('should fetch and render resorts', async () => {
-        render(<RegionProvider><ResortList /></RegionProvider>);
+        render(<ResortList />);
 
         await waitFor(() => {
             expect(screen.getByText('Resort Status')).toBeInTheDocument();
@@ -30,7 +42,7 @@ describe('ResortList', () => {
     });
 
     it('should display snow and lift information', async () => {
-        render(<RegionProvider><ResortList /></RegionProvider>);
+        render(<ResortList />);
 
         await waitFor(() => {
             expect(screen.getByText('5"')).toBeInTheDocument();
@@ -39,7 +51,7 @@ describe('ResortList', () => {
     });
 
     it('should sort by snow by default (descending)', async () => {
-        render(<RegionProvider><ResortList /></RegionProvider>);
+        render(<ResortList />);
 
         await waitFor(() => {
             const resortNames = screen.getAllByRole('heading', { level: 3 });
@@ -50,7 +62,7 @@ describe('ResortList', () => {
     });
 
     it('should sort by name when selected', async () => {
-        render(<RegionProvider><ResortList /></RegionProvider>);
+        render(<ResortList />);
 
         await waitFor(() => {
             expect(screen.getByText('Breckenridge')).toBeInTheDocument();

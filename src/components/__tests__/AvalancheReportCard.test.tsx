@@ -6,6 +6,18 @@ import { RegionProvider } from '../../context/RegionContext';
 
 vi.mock('../../services/avalanche');
 
+// Mock useRegion
+vi.mock('../../context/RegionContext', () => ({
+    useRegion: () => ({
+        selectedRegion: {
+            id: 'co',
+            name: 'Colorado',
+            resortIds: []
+        },
+        setRegionId: vi.fn()
+    })
+}));
+
 describe('AvalancheReportCard', () => {
     beforeEach(() => {
         vi.resetAllMocks();
@@ -16,7 +28,7 @@ describe('AvalancheReportCard', () => {
             () => new Promise(() => { }) // Never resolves
         );
 
-        render(<RegionProvider><AvalancheReportCard destination="frisco" /></RegionProvider>);
+        render(<AvalancheReportCard destination="frisco" />);
 
         expect(screen.getByText(/loading avalanche report/i)).toBeInTheDocument();
     });
@@ -34,7 +46,7 @@ describe('AvalancheReportCard', () => {
 
         vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(mockForecast);
 
-        render(<RegionProvider><AvalancheReportCard destination="frisco" /></RegionProvider>);
+        render(<AvalancheReportCard destination="frisco" />);
 
         await waitFor(() => {
             expect(screen.getByText('Avalanche Report')).toBeInTheDocument();
@@ -47,7 +59,7 @@ describe('AvalancheReportCard', () => {
     it('should render nothing if forecast is null', async () => {
         vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(null);
 
-        const { container } = render(<RegionProvider><AvalancheReportCard destination="frisco" /></RegionProvider>);
+        const { container } = render(<AvalancheReportCard destination="frisco" />);
 
         await waitFor(() => {
             expect(container.firstChild).toBeNull();
