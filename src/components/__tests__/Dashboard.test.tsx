@@ -164,4 +164,22 @@ describe('Dashboard', () => {
             expect(cdotService.getStreamingCameras).toHaveBeenCalled();
         });
     });
+
+    it('should set destination when a resort is clicked', async () => {
+        render(<Dashboard />);
+
+        // Wait for resorts to load (Vail is in the mock)
+        await waitFor(() => {
+            expect(screen.getByText('Vail')).toBeInTheDocument();
+        });
+
+        // Click on Vail
+        fireEvent.click(screen.getByText('Vail'));
+
+        // Verify that the route planner update logic is triggered
+        // We can check if getIncidents/getRoadConditions is called, as that happens when destination is set
+        await waitFor(() => {
+            expect(cdotService.getIncidents).toHaveBeenCalled();
+        });
+    });
 });

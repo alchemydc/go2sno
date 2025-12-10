@@ -315,7 +315,10 @@ export const Dashboard: React.FC = () => {
 
                 {/* Resort Reports */}
                 <div className="area-resorts">
-                    <ResortList resorts={resorts} />
+                    <ResortList
+                        resorts={resorts}
+                        onSelect={setDestination}
+                    />
                 </div>
 
             </div>

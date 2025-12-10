@@ -6,9 +6,10 @@ import { useRegion } from '../context/RegionContext';
 
 interface ResortListProps {
     resorts: Resort[];
+    onSelect?: (resortId: string) => void;
 }
 
-export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts }) => {
+export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts, onSelect }) => {
     const { selectedRegion } = useRegion();
     const [sortedResorts, setSortedResorts] = useState<Resort[]>([]);
     const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
@@ -54,14 +55,21 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts 
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {sortedResorts.map((resort) => (
-                    <div key={resort.id} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1rem',
-                        backgroundColor: 'var(--color-background)',
-                        borderRadius: 'var(--radius-md)'
-                    }}>
+                    <div
+                        key={resort.id}
+                        onClick={() => onSelect?.(resort.id)}
+                        role="button"
+                        tabIndex={0}
+                        className={`resort-item ${onSelect ? 'clickable' : ''}`}
+                        style={{
+                            cursor: onSelect ? 'pointer' : 'default'
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                onSelect?.(resort.id);
+                            }
+                        }}
+                    >
                         <div>
                             <h3 style={{ margin: '0 0 0.25rem 0' }}>{resort.name}</h3>
 

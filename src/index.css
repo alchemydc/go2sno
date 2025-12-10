@@ -101,19 +101,37 @@ body {
 }
 
 /* Mobile Order */
-.area-planner { order: 1; }
-.area-resorts { order: 2; }
-.area-weather { order: 3; }
-.area-avalanche { order: 4; }
-.area-alerts { order: 5; }
-.area-cameras { order: 6; }
+.area-planner {
+  order: 1;
+}
+
+.area-resorts {
+  order: 2;
+}
+
+.area-weather {
+  order: 3;
+}
+
+.area-avalanche {
+  order: 4;
+}
+
+.area-alerts {
+  order: 5;
+}
+
+.area-cameras {
+  order: 6;
+}
 
 /* Desktop Layout */
 @media (min-width: 768px) {
   .dashboard-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    align-items: start; /* Prevent stretching */
+    align-items: start;
+    /* Prevent stretching */
   }
 
   .area-planner {
@@ -145,4 +163,35 @@ body {
     grid-column: 2;
     grid-row: 4;
   }
+}
+
+/* Interactive Resort Item */
+.resort-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--color-background);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.resort-item.clickable:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.resort-item.clickable:active {
+  transform: scale(0.98);
+  background-color: #e5e7eb;
+}
+
+[data-theme='dark'] .resort-item.clickable:hover {
+  background-color: #374151;
+}
+
+[data-theme='dark'] .resort-item.clickable:active {
+  background-color: #4b5563;
 }

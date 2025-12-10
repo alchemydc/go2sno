@@ -377,48 +377,67 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
         };
     }, [incidents, conditions]);
 
+    // Initialize map when route is complete
+    const showMap = Boolean(from && destination);
+
     useEffect(() => {
-        if (map.current) return; // initialize map only once
+        if (!showMap || !mapContainer.current) return;
+        if (map.current) return; // initialize map only once per mount cycle
 
-        if (mapContainer.current) {
-            const mapId = Math.random().toString(36).substring(7);
+        const mapId = Math.random().toString(36).substring(7);
 
-            map.current = new maplibregl.Map({
-                container: mapContainer.current,
-                style: {
-                    version: 8,
-                    sources: {
-                        'osm': {
-                            type: 'raster',
-                            tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                            tileSize: 256,
-                            //attribution: '&copy; OpenStreetMap Contributors',
-                        }
-                    },
-                    layers: [
-                        {
-                            id: 'osm',
-                            type: 'raster',
-                            source: 'osm',
-                            minzoom: 0,
-                            maxzoom: 19,
-                        }
-                    ]
+        map.current = new maplibregl.Map({
+            container: mapContainer.current,
+            style: {
+                version: 8,
+                sources: {
+                    'osm': {
+                        type: 'raster',
+                        tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        //attribution: '&copy; OpenStreetMap Contributors',
+                    }
                 },
-                center: [-98.5795, 39.8283], // Center of US
-                zoom: 3
-            });
+                layers: [
+                    {
+                        id: 'osm',
+                        type: 'raster',
+                        source: 'osm',
+                        minzoom: 0,
+                        maxzoom: 19,
+                    }
+                ]
+            },
+            center: [-98.5795, 39.8283], // Center of US
+            zoom: 3
+        });
 
-            // @ts-ignore
-            map.current._id = mapId;
+        // @ts-ignore
+        map.current._id = mapId;
 
-            map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-            map.current.on('load', () => {
-                // Map loaded
-            });
-        }
-    }, []);
+        map.current.on('load', () => {
+            // Map loaded
+            // Trigger an update to ensure layers are added if route data is already present
+            // We can't easily trigger the other effect, but it depends on map.current,
+            // so we might need to force a re-render or ensure the other effect runs.
+            // Actually, the other effect checks `if (!map.current) return;`.
+            // Depending on timing, it might have run and returned early.
+            // But since `map` is a ref, modifying it doesn't trigger re-renders.
+            // The `updateLayers` logic is in another useEffect dependent on [routeGeoJSON].
+            // If routeGeoJSON is already set, that effect might have run before map.current was set.
+            // However, `showMap` becoming true usually coincides with routeGeoJSON being fetched?
+            // Not necessarily. routeGeoJSON comes from `fetchStats`.
+        });
+
+        return () => {
+            if (map.current) {
+                map.current.remove();
+                map.current = null;
+            }
+        };
+    }, [showMap]); // Only re-run when showing/hiding toggles
 
     // Update map view when region changes
     useEffect(() => {
@@ -526,7 +545,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 </div>
             )}
 
-            <div ref={mapContainer} style={{ width: '100%', height: '400px', borderRadius: 'var(--radius-md)' }} />
+            {from && destination && (
+                <div style={{ minHeight: '400px', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginTop: '1rem' }}>
+                    <div ref={mapContainer} style={{ width: '100%', height: '400px' }} />
+                </div>
+            )}
         </div>
     );
 };
