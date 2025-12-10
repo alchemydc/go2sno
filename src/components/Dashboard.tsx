@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { logger } from '../utils/logger';
 import { RoutePlanner } from './RoutePlanner';
 import { CameraGrid } from './CameraGrid';
@@ -145,9 +146,20 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="container">
             <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h1 style={{ color: 'var(--color-primary)', fontSize: '2.5rem', marginBottom: '0.5rem', margin: 0 }}>go2sno</h1>
-                    <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time snow, weather, avalanche and road conditions.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+                        <Image
+                            src="/logo.jpg"
+                            alt="go2sno logo"
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            priority
+                        />
+                    </div>
+                    <div>
+                        <h1 style={{ color: 'var(--color-primary)', fontSize: '2.5rem', margin: 0, lineHeight: 1 }}>go2sno</h1>
+                        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time snow, weather, avalanche and road conditions.</p>
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <ThemeToggle />
