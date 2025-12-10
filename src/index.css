@@ -92,3 +92,57 @@ body {
   color: #1f2937 !important;
   /* Force dark text for popups */
 }
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Mobile Order */
+.area-planner { order: 1; }
+.area-resorts { order: 2; }
+.area-weather { order: 3; }
+.area-avalanche { order: 4; }
+.area-alerts { order: 5; }
+.area-cameras { order: 6; }
+
+/* Desktop Layout */
+@media (min-width: 768px) {
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    align-items: start; /* Prevent stretching */
+  }
+
+  .area-planner {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .area-cameras {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .area-weather {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .area-avalanche {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .area-alerts {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .area-resorts {
+    grid-column: 2;
+    grid-row: 4;
+  }
+}

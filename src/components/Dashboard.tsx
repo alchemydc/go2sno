@@ -221,10 +221,10 @@ export const Dashboard: React.FC = () => {
                 </div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            <div className="dashboard-grid">
 
-                {/* Main Column: Route & Cameras */}
-                <div style={{ gridColumn: 'span 2' }}>
+                {/* Route Planner */}
+                <div className="area-planner">
                     <RoutePlanner
                         locations={locations}
                         locationOptions={selectedRegion?.locations || []}
@@ -240,9 +240,12 @@ export const Dashboard: React.FC = () => {
                         onRegionChange={setRegionId}
                         snowForecast={resorts.find(r => r.id === destination)?.snow24h}
                     />
+                </div>
 
+                {/* Cameras */}
+                <div className="area-cameras">
                     {destination && (
-                        <div className="card" style={{ marginBottom: '1.5rem' }}>
+                        <div className="card" style={{ marginBottom: 0, height: '100%' }}>
                             <CameraGrid cameras={cameras.slice(0, 4)} loading={loadingAlerts} />
 
                             {!loadingAlerts && cameras.length > 4 && (
@@ -271,43 +274,47 @@ export const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                {/* Sidebar: Weather, Avalanche Conditions, Road Conditions & Incidents and Resort Reports */}
-                <div>
+                {/* Weather */}
+                <div className="area-weather">
                     {destination && (
-                        <>
-                            {/* Weather Card */}
-                            <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: '1.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
-                                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
-                                </div>
-                                {weather ? (
-                                    <div>
-                                        <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
-                                        <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
-                                        <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
-                                    </div>
-                                ) : (
-                                    <div>Loading weather...</div>
-                                )}
+                        <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                                <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
+                                <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
                             </div>
-
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <AvalancheReportCard destination={destination} />
-                            </div>
-
-                            {(incidents.length > 0 || conditions.length > 0) && (
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <IncidentsCard
-                                        incidents={incidents}
-                                        conditions={conditions}
-                                        loading={loadingAlerts}
-                                    />
+                            {weather ? (
+                                <div>
+                                    <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
+                                    <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
+                                    <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
                                 </div>
+                            ) : (
+                                <div>Loading weather...</div>
                             )}
-                        </>
+                        </div>
                     )}
+                </div>
 
+                {/* Avalanche Report */}
+                <div className="area-avalanche">
+                    {destination && (
+                        <AvalancheReportCard destination={destination} />
+                    )}
+                </div>
+
+                {/* Travel Alerts (Incidents & Conditions) */}
+                <div className="area-alerts">
+                    {destination && (incidents.length > 0 || conditions.length > 0) && (
+                        <IncidentsCard
+                            incidents={incidents}
+                            conditions={conditions}
+                            loading={loadingAlerts}
+                        />
+                    )}
+                </div>
+
+                {/* Resort Reports */}
+                <div className="area-resorts">
                     <ResortList resorts={resorts} />
                 </div>
 
