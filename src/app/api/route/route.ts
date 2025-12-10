@@ -18,7 +18,19 @@ export async function GET(request: Request) {
 
     try {
         const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
+        logger.debug('Fetching route from TomTom:', { url: url.replace(apiKey, '***') }); // Redact API key
+
         const response = await fetch(url);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            logger.error('TomTom API error response:', { status: response.status, body: errorText });
+            return NextResponse.json({
+                error: `TomTom API error: ${response.status}`,
+                details: errorText
+            }, { status: response.status });
+        }
+
         const data = await response.json();
 
         if (data.routes && data.routes.length > 0) {
@@ -35,10 +47,11 @@ export async function GET(request: Request) {
                 coordinates: coordinates
             });
         } else {
+            logger.warn('TomTom returned no routes for:', { origin, destination });
             return NextResponse.json({ error: 'No route found' }, { status: 404 });
         }
     } catch (error) {
-        logger.error('TomTom API error:', error);
+        logger.error('Route API handler exception:', error);
         return NextResponse.json({ error: 'Failed to fetch route data' }, { status: 500 });
     }
 }

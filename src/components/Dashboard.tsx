@@ -91,7 +91,7 @@ export const Dashboard: React.FC = () => {
         if (routeGeoJSON && routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates) {
             const routeLine = lineString(routeGeoJSON.geometry.coordinates);
             const MAX_DISTANCE_MILES = 1; // range beyond which incidents and conditions will be ignored for a given route
-            const CAMERA_MAX_DISTANCE_MILES = 5; // cameras can be further from route
+            const CAMERA_MAX_DISTANCE_MILES = 1; // range beyond which cameras will be ignored for a given route
 
             const filteredIncidents = allIncidents.filter(incident => {
                 let coords: number[];

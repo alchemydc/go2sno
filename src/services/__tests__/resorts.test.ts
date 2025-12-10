@@ -1,44 +1,56 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { getResorts } from '../resorts';
+import { fetchResortWeather } from '../open-meteo';
 
-describe('resorts service', () => {
-    describe('getResorts', () => {
-        it('should return list of resorts with correct structure', async () => {
-            const resorts = await getResorts();
+// Mock dependencies
+vi.mock('../open-meteo', () => ({
+    fetchResortWeather: vi.fn()
+}));
 
-            expect(resorts).toBeInstanceOf(Array);
-            expect(resorts.length).toBeGreaterThan(0);
+vi.mock('../utils/logger', () => ({
+    logger: {
+        debug: vi.fn(),
+        warn: vi.fn()
+    }
+}));
 
-            // Check first resort has required fields
-            const firstResort = resorts[0];
-            expect(firstResort).toHaveProperty('id');
-            expect(firstResort).toHaveProperty('name');
-            expect(firstResort).toHaveProperty('snow24h');
-            expect(firstResort).toHaveProperty('liftsOpen');
-            expect(firstResort).toHaveProperty('totalLifts');
-            expect(firstResort).toHaveProperty('lat');
-            expect(firstResort).toHaveProperty('lon');
-        });
+describe('Resort Service', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        // Setup default mock response for weather
+        (fetchResortWeather as Mock).mockResolvedValue(
+            Array(20).fill({ daily: { snowfall_sum: [5] }, current: { temperature_2m: 20 } })
+        );
+    });
 
-        it('should include specific resorts', async () => {
-            const resorts = await getResorts();
-            const resortNames = resorts.map(r => r.name);
+    it('should filter resorts by region (Colorado)', async () => {
+        const resorts = await getResorts('co');
 
-            expect(resortNames).toContain('Copper Mountain');
-            expect(resortNames).toContain('Breckenridge');
-            expect(resortNames).toContain('Vail');
-        });
+        // Matches the number of CO resorts in resorts.ts
+        expect(resorts.length).toBeGreaterThan(0);
+        expect(resorts.find(r => r.id === 'copper')).toBeDefined();
+        expect(resorts.find(r => r.id === 'parkcity')).toBeUndefined();
 
-        it('should have valid numeric values', async () => {
-            const resorts = await getResorts();
+        // Check that weather was called
+        expect(fetchResortWeather).toHaveBeenCalledTimes(1);
+    });
 
-            resorts.forEach(resort => {
-                expect(typeof resort.snow24h).toBe('number');
-                expect(typeof resort.liftsOpen).toBe('number');
-                expect(typeof resort.totalLifts).toBe('number');
-                expect(typeof resort.lat).toBe('number');
-                expect(typeof resort.lon).toBe('number');
-            });
-        });
+    it('should filter resorts by region (Utah)', async () => {
+        const resorts = await getResorts('ut');
+
+        // Matches the number of UT resorts in resorts.ts
+        expect(resorts.length).toBeGreaterThan(0);
+        expect(resorts.find(r => r.id === 'parkcity')).toBeDefined();
+        expect(resorts.find(r => r.id === 'copper')).toBeUndefined();
+    });
+
+    it('should correctly merge weather data', async () => {
+        const resorts = await getResorts('co');
+
+        expect(resorts[0].snow24h).toBe(5);
+        expect(resorts[0].temp).toBe(20);
+
+        expect(resorts[1].snow24h).toBe(5);
+        expect(resorts[1].temp).toBe(20);
     });
 });

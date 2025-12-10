@@ -10,10 +10,9 @@ export const ResortList: React.FC = () => {
     const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
 
     useEffect(() => {
-        getResorts().then((data) => {
-            // Filter resorts by selected region
-            const filtered = data.filter(resort => selectedRegion.resortIds.includes(resort.id));
-            const sorted = [...filtered].sort((a, b) => b.snow24h - a.snow24h);
+        getResorts(selectedRegion.id).then((data) => {
+            // Resort service now handles filtering by region
+            const sorted = [...data].sort((a, b) => b.snow24h - a.snow24h);
             setResorts(sorted);
         });
     }, [selectedRegion.id]);

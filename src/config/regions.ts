@@ -93,6 +93,8 @@ export const REGIONS: Record<string, Region> = {
             { id: 'sf', name: 'San Francisco', coordinates: '37.7749,-122.4194', type: 'gateway' },
             { id: 'oakland', name: 'Oakland', coordinates: '37.8044,-122.2712', type: 'gateway' },
             { id: 'sacramento', name: 'Sacramento', coordinates: '38.5816,-121.4944', type: 'gateway' },
+            { id: 'la', name: 'Los Angeles', coordinates: '34.0522,-118.2437', type: 'gateway' },
+            { id: 'ventura', name: 'Ventura', coordinates: '34.2746,-119.2290', type: 'gateway' },
             { id: 'santacruz', name: 'Santa Cruz', coordinates: '36.9741,-122.0308', type: 'gateway' },
             { id: 'reno', name: 'Reno', coordinates: '39.5296,-119.8138', type: 'gateway' },
             { id: 'tahoe', name: 'South Lake Tahoe', coordinates: '38.9332,-119.9772', type: 'town' },
@@ -101,7 +103,7 @@ export const REGIONS: Record<string, Region> = {
             { id: 'palisades', name: 'Palisades Tahoe', coordinates: '39.1970,-120.2356', type: 'resort' },
             { id: 'northstar', name: 'Northstar', coordinates: '39.2730,-120.1192', type: 'resort' },
             { id: 'kirkwood', name: 'Kirkwood', coordinates: '38.6810,-120.0659', type: 'resort' },
-            { id: 'mammoth', name: 'Mammoth', coordinates: '37.6308,-119.0326', type: 'resort' },
+            { id: 'mammoth', name: 'Mammoth', coordinates: '37.6485,-118.9721', type: 'resort' },
         ],
         resortIds: ['heavenly', 'palisades', 'northstar', 'kirkwood', 'mammoth'],
         services: {
