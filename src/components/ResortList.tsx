@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getResorts } from '../services/resorts';
 import type { Resort } from '../services/resorts';
 import { Snowflake, Mountain } from 'lucide-react';
 import { useRegion } from '../context/RegionContext';
 import { LiftStatusOverlay } from './LiftStatusOverlay';
+import { TerrainParkOverlay } from './TerrainParkOverlay';
 
 interface ResortListProps {
     resorts: Resort[];
@@ -18,6 +18,11 @@ interface ResortData {
         open: number;
         total: number;
         percentOpen: number;
+        parks?: {
+            open: number;
+            total: number;
+            details: Record<string, string>;
+        };
     };
     debug?: any;
 }
@@ -29,6 +34,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
 
     const [pcData, setPcData] = useState<ResortData | null>(null);
     const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+    const [isParkOverlayOpen, setIsParkOverlayOpen] = useState(false);
 
     useEffect(() => {
         if (!initialResorts.length) {
@@ -107,26 +113,48 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 <h3 style={{ margin: '0 0 0.25rem 0' }}>{resort.name}</h3>
                                 {resort.name === 'Park City' && pcData && (
                                     <div
-                                        style={{ fontSize: '0.8rem', color: '#555', display: 'flex', gap: '0.5rem', cursor: 'pointer' }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsOverlayOpen(true);
-                                        }}
-                                        title="Click for details"
+                                        style={{ fontSize: '0.8rem', color: '#555', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
                                     >
-                                        <span style={{
-                                            backgroundColor: pcData.summary.open > 0 ? '#e6f4ea' : '#fce8e6',
-                                            color: pcData.summary.open > 0 ? '#137333' : '#c5221f',
-                                            padding: '2px 6px',
-                                            borderRadius: '4px',
-                                            fontWeight: 'bold',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px'
-                                        }}>
+                                        <span
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsOverlayOpen(true);
+                                            }}
+                                            style={{
+                                                backgroundColor: pcData.summary.open > 0 ? '#e6f4ea' : '#fce8e6',
+                                                color: pcData.summary.open > 0 ? '#137333' : '#c5221f',
+                                                padding: '2px 6px',
+                                                borderRadius: '4px',
+                                                fontWeight: 'bold',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                cursor: 'pointer'
+                                            }}>
                                             {pcData.summary.open}/{pcData.summary.total} Lifts Open
                                             <span style={{ fontSize: '0.7em' }}>ℹ️</span>
                                         </span>
+                                        {pcData.summary.parks && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsParkOverlayOpen(true);
+                                                }}
+                                                style={{
+                                                    backgroundColor: '#f1f3f4',
+                                                    color: '#3c4043',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    fontWeight: 'bold',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    marginLeft: '4px',
+                                                    cursor: 'pointer'
+                                                }}>
+                                                {pcData.summary.parks.open}/{pcData.summary.parks.total} Parks Open
+                                                <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>ℹ️</span>
+                                            </span>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -153,6 +181,19 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                     resortName="Park City Mountain"
                     lifts={pcData.lifts}
                     summary={pcData.summary}
+                />
+            )}
+
+            {pcData && pcData.summary.parks && (
+                <TerrainParkOverlay
+                    isOpen={isParkOverlayOpen}
+                    onClose={() => setIsParkOverlayOpen(false)}
+                    resortName="Park City Mountain"
+                    parks={pcData.summary.parks.details}
+                    summary={{
+                        open: pcData.summary.parks.open,
+                        total: pcData.summary.parks.total
+                    }}
                 />
             )}
         </>

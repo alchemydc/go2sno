@@ -21,17 +21,36 @@ const STATUS_MAP: Record<number, 'open' | 'closed' | 'hold' | 'scheduled'> = {
  * Extracts the lift status data from the Vail Resorts HTML.
  * Based on logic from: https://github.com/pirxpilot/liftie/blob/main/lib/tools/vail.js
  */
-// Update the interface to include optional debug info
+
+// Update the interface to include optional debug info and park summary
 export interface LiftStatusResult {
     lifts: LiftStatus;
+    parks: {
+        open: number;
+        total: number;
+        details: Record<string, string>;
+    };
     debug?: any;
 }
 
-export function parseVailStatus(html: string): LiftStatusResult {
+export interface ParseOptions {
+    parkNames?: string[];
+}
+
+export function parseVailStatus(html: string, options?: ParseOptions): LiftStatusResult {
     const debugInfo: any = { steps: [] };
     const log = (msg: string, data?: any) => debugInfo.steps.push({ msg, data });
 
-    log('Starting parse', { htmlLength: html.length });
+    const parkNames = options?.parkNames || [];
+
+    // Helper to return empty result
+    const emptyResult = {
+        lifts: {},
+        parks: { open: 0, total: 0, details: {} },
+        debug: debugInfo
+    };
+
+    log('Starting parse', { htmlLength: html.length, parkNamesCount: parkNames.length });
 
     const $ = cheerio.load(html);
 
@@ -47,7 +66,7 @@ export function parseVailStatus(html: string): LiftStatusResult {
 
     if (!scriptContent) {
         log('TerrainStatusFeed script not found');
-        return { lifts: {}, debug: debugInfo };
+        return emptyResult;
     }
 
     log('Found script', { length: scriptContent.length });
@@ -81,11 +100,13 @@ export function parseVailStatus(html: string): LiftStatusResult {
 
         if (!feed || !feed.Lifts) {
             log('Script executed but no Lifts', { keys: feed ? Object.keys(feed) : 'null' });
-            return { lifts: {}, debug: debugInfo };
+            return emptyResult;
         }
 
+        // Discover keys for Terrain/Trails
+        log('Feed keys found', { keys: Object.keys(feed) });
         const liftsData = feed.Lifts;
-        log('Lifts data found', { count: liftsData.length, first: liftsData[0] });
+        log('Lifts data found', { count: liftsData.length });
 
         const liftStatus: LiftStatus = {};
         const rawStatusMap: Record<string, number> = {};
@@ -105,12 +126,57 @@ export function parseVailStatus(html: string): LiftStatusResult {
             });
         }
 
-        debugInfo.rawStatusMap = rawStatusMap;
+        // --- Terrain Park Logic ---
+        const parkStatus: Record<string, string> = {};
+        let openParks = 0;
+        let totalParks = 0;
 
-        return { lifts: liftStatus, debug: debugInfo };
+        if (parkNames.length > 0) {
+            // Aggregate all trails from GroomingAreas
+            const allTrails: any[] = [];
+            if (feed.GroomingAreas && Array.isArray(feed.GroomingAreas)) {
+                feed.GroomingAreas.forEach((area: any) => {
+                    if (area.Trails && Array.isArray(area.Trails)) {
+                        allTrails.push(...area.Trails);
+                    }
+                });
+            }
+
+            // Find status for known parks
+            parkNames.forEach(parkName => {
+                const trail = allTrails.find(t => t.Name && t.Name.trim() === parkName);
+                if (trail) {
+                    // Trails use 'IsOpen' boolean, unlike Lifts which use 'Status' code
+                    // Check IsOpen directly.
+                    const isOpen = trail.IsOpen === true;
+                    const status = isOpen ? 'open' : 'closed';
+
+                    parkStatus[parkName] = status;
+
+                    if (status === 'open') openParks++;
+                    totalParks++;
+                } else {
+                    // Log missing parks to help debugging
+                    log('Park not found in feed', { name: parkName });
+                }
+            });
+        }
+
+        debugInfo.rawStatusMap = rawStatusMap;
+        debugInfo.parkStatus = parkStatus;
+
+        return {
+            lifts: liftStatus,
+            parks: {
+                open: openParks,
+                total: totalParks,
+                details: parkStatus
+            },
+            debug: debugInfo
+        };
 
     } catch (error) {
         log('Exception during parsing', { error: String(error) });
-        return { lifts: {}, debug: debugInfo };
+        return emptyResult;
     }
 }

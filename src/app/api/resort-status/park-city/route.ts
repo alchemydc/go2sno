@@ -28,7 +28,17 @@ export async function GET() {
         const html = await response.text();
         logger.debug('API: Received HTML', { length: html.length });
 
-        const result = parseVailStatus(html);
+        const PARK_CITY_PARKS = [
+            "Little Kings",
+            "Pick Axe",
+            "Transitions Terrain Park",
+            "3 Kings",
+            "Half Pipe",
+            "Mini Pipe",
+            "Pick 'N Shovel"
+        ];
+
+        const result = parseVailStatus(html, { parkNames: PARK_CITY_PARKS });
         const lifts = result.lifts;
 
         // Park City website counts 'Scheduled' (3) as 'Open' in their summary stats
@@ -44,7 +54,8 @@ export async function GET() {
             summary: {
                 open: openCount,
                 total: totalCount,
-                percentOpen: totalCount > 0 ? Math.round((openCount / totalCount) * 100) : 0
+                percentOpen: totalCount > 0 ? Math.round((openCount / totalCount) * 100) : 0,
+                parks: result.parks
             },
             debug: result.debug // return debug info to client for troubleshooting
         });

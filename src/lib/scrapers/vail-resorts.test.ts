@@ -89,4 +89,31 @@ describe('parseVailStatus', () => {
             'Spacey': 'open'
         });
     });
+
+    it('should parse terrain park status from GroomingAreas', () => {
+        const html = `
+            <script>
+                var TerrainStatusFeed = {
+                    "Lifts": [],
+                    "GroomingAreas": [
+                        {
+                            "Trails": [
+                                { "Name": "MyPark", "IsOpen": true },
+                                { "Name": "ClosedPark", "IsOpen": false },
+                                { "Name": "RandomTrail", "IsOpen": true }
+                            ]
+                        }
+                    ]
+                };
+            </script>
+        `;
+        const result = parseVailStatus(html, { parkNames: ['MyPark', 'ClosedPark'] });
+
+        expect(result.parks.total).toBe(2);
+        expect(result.parks.open).toBe(1);
+        expect(result.parks.details).toEqual({
+            'MyPark': 'open',
+            'ClosedPark': 'closed'
+        });
+    });
 });
