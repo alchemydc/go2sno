@@ -11,6 +11,7 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 *   **Avalanche Forecasts:**  Avalanche forecast for selected destination from CAIC.
 *   **Resort Status:** Sortable list of resort snow reports.
     *   *Note:* Real-time weather and "24h Snow" provided by [Open-Meteo](https://open-meteo.com/). The "24h Snow" value represents the *forecasted* snowfall for the current day.
+*   **Live Lift Status (Park City):** Real-time lift and terrain status scraped via [Micrawl](https://github.com/gustavovalverde/micrawl) to bypass anti-bot protections.
 *   **Tahoe Road Conditions:** Integration with California/NV Department of Transportation API for road conditions and cameras. Note that a CORS error is intermittently breaking playback of Caltrans CCTV feeds.
 *   **Dark Mode:** Full dark theme support.
 
@@ -19,7 +20,7 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 *   **Utah Road Conditions:** Integration with Utah Department of Transportation API for road conditions. 
 *   **Tahoe Avalanche Forecasts:** Integration with Tahoe Avalanche Center API for avalanche forecasts.
 conditions. (?)
-*   **Real Resort Lift Status:** Integration with resort APIs (e.g., Epic/Ikon) for live lift status and snow reports. Currently difficult due to lack of public APIs; may need to implement a scraper.
+*   **Real Resort Lift Status:** Integration with resort APIs (e.g., Epic/Ikon) for live lift status and snow reports. Started with Park City using Micrawl; expanding to others.
 *   **Mobile Optimization:** Improved touch controls and layout refinements for small screens.
 
 
@@ -38,6 +39,7 @@ conditions. (?)
     ```env
     COTRIP_API_KEY=your_api_key_here
     TOMTOM_API_KEY=your_api_key_here
+    MICRAWL_API_URL=your_micrawl_api_url_here
     ```
 
 3.  Run the development server:
@@ -61,3 +63,4 @@ conditions. (?)
     *   TomTom (routing)
       - `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
     *   National Weather Service API (Weather)
+    *   Micrawl (Resort Status Scraping)
