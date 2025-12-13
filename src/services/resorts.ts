@@ -29,6 +29,7 @@ const RESORT_LOCATIONS = [
     { id: 'telluride', name: 'Telluride', totalLifts: 19, lat: 37.9375, lon: -107.8123 },
     { id: 'beavercreek', name: 'Beaver Creek', totalLifts: 25, lat: 39.6042, lon: -106.5165 },
     { id: 'monarch', name: 'Monarch Mountain', totalLifts: 7, lat: 38.5458, lon: -106.3258 },
+    { id: 'crestedbutte', name: 'Crested Butte', totalLifts: 15, lat: 38.8697, lon: -106.9878 },
 
     // Utah
     { id: 'parkcity', name: 'Park City', totalLifts: 41, lat: 40.6514, lon: -111.5080 },

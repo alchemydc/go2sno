@@ -59,7 +59,7 @@ export const REGIONS: Record<string, Region> = {
             { id: 'beavercreek', name: 'Beaver Creek', coordinates: '39.6042,-106.5165', type: 'resort' },
             { id: 'monarch', name: 'Monarch', coordinates: '38.5458,-106.3258', type: 'resort' },
         ],
-        resortIds: ['copper', 'breck', 'keystone', 'abasin', 'vail', 'winterpark', 'steamboat', 'eldora', 'skicooper', 'aspen', 'telluride', 'beavercreek', 'monarch'],
+        resortIds: ['copper', 'breck', 'keystone', 'abasin', 'vail', 'winterpark', 'steamboat', 'eldora', 'skicooper', 'aspen', 'telluride', 'beavercreek', 'monarch', 'crestedbutte'],
         services: {
             weather: true,
             roads: true,

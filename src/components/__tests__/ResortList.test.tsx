@@ -27,6 +27,21 @@ describe('ResortList', () => {
 
     beforeEach(() => {
         vi.resetAllMocks();
+        global.fetch = vi.fn((url) => {
+            if (typeof url === 'string' && url.includes('/api/resort-status/breck')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        resort: 'breck',
+                        summary: { open: 10, total: 20, parks: { open: 1, total: 3 } }
+                    })
+                });
+            }
+            return Promise.resolve({
+                ok: false,
+                json: () => Promise.resolve({})
+            });
+        }) as any;
     });
 
     it('should fetch and render resorts', async () => {
@@ -37,6 +52,15 @@ describe('ResortList', () => {
             expect(screen.getByText('Copper Mountain')).toBeInTheDocument();
             expect(screen.getByText('Breckenridge')).toBeInTheDocument();
             expect(screen.getByText('Arapahoe Basin')).toBeInTheDocument();
+        });
+    });
+
+    it('should display status badges for resorts with data', async () => {
+        render(<ResortList resorts={mockResorts} />);
+
+        await waitFor(() => {
+            expect(screen.getByText('10/20 Lifts Open')).toBeInTheDocument();
+            expect(screen.getByText('1/3 Parks Open')).toBeInTheDocument();
         });
     });
 

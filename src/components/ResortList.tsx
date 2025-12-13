@@ -32,9 +32,9 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
     const [sortedResorts, setSortedResorts] = useState<Resort[]>([]);
     const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
 
-    const [pcData, setPcData] = useState<ResortData | null>(null);
-    const [isOverlayOpen, setIsOverlayOpen] = useState(false);
-    const [isParkOverlayOpen, setIsParkOverlayOpen] = useState(false);
+    const [resortStatuses, setResortStatuses] = useState<Record<string, ResortData>>({});
+    const [activeResortId, setActiveResortId] = useState<string | null>(null);
+    const [activeOverlay, setActiveOverlay] = useState<'lifts' | 'parks' | null>(null);
 
     useEffect(() => {
         if (!initialResorts.length) {
@@ -50,20 +50,36 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
     }, [initialResorts, sortBy]);
 
     useEffect(() => {
-        // Ideally we would map resort IDs to API endpoints, but for MVP we hardcode Park City
-        fetch('/api/resort-status/park-city')
-            .then((res) => res.json())
-            .then((data) => {
-                // @ts-ignore
-                if (data.summary) {
-                    setPcData(data as ResortData);
+        const fetchStatuses = async () => {
+            if (!initialResorts.length) return;
+
+            // Fetch in parallel
+            const promises = initialResorts.map(async (resort) => {
+                try {
+                    const res = await fetch(`/api/resort-status/${resort.id}`);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    return { id: resort.id, data };
+                } catch (err) {
+                    console.error(`Failed to fetch status for ${resort.id}`, err);
+                    return null;
                 }
-                if (data.debug) {
-                    console.log('[DEBUG] Park City Status:', data);
+            });
+
+            const results = await Promise.all(promises);
+            const statusMap: Record<string, ResortData> = {};
+
+            results.forEach(result => {
+                if (result) {
+                    statusMap[result.id] = result.data;
                 }
-            })
-            .catch((err) => console.error('Failed to fetch Park City status', err));
-    }, []);
+            });
+
+            setResortStatuses(statusMap);
+        };
+
+        fetchStatuses();
+    }, [initialResorts]);
 
     if (!selectedRegion) {
         return null;
@@ -72,6 +88,8 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
     const handleSort = (type: 'snow' | 'name') => {
         setSortBy(type);
     };
+
+    const activeResortData = activeResortId ? resortStatuses[activeResortId] : null;
 
     return (
         <>
@@ -93,52 +111,60 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {sortedResorts.map((resort) => (
-                        <div
-                            key={resort.id}
-                            onClick={() => onSelect?.(resort.id)}
-                            role="button"
-                            tabIndex={0}
-                            className={`resort-item ${onSelect ? 'clickable' : ''}`}
-                            style={{
-                                cursor: onSelect ? 'pointer' : 'default'
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    onSelect?.(resort.id);
-                                }
-                            }}
-                        >
-                            <div>
-                                <h3 style={{ margin: '0 0 0.25rem 0' }}>{resort.name}</h3>
-                                {resort.name === 'Park City' && pcData && (
-                                    <div
-                                        style={{ fontSize: '0.8rem', color: '#555', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
-                                    >
-                                        <span
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsOverlayOpen(true);
-                                            }}
-                                            style={{
-                                                backgroundColor: pcData.summary.open > 0 ? '#e6f4ea' : '#fce8e6',
-                                                color: pcData.summary.open > 0 ? '#137333' : '#c5221f',
-                                                padding: '2px 6px',
-                                                borderRadius: '4px',
-                                                fontWeight: 'bold',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                cursor: 'pointer'
-                                            }}>
-                                            {pcData.summary.open}/{pcData.summary.total} Lifts Open
-                                            <span style={{ fontSize: '0.7em' }}>ℹ️</span>
-                                        </span>
-                                        {pcData.summary.parks && (
+                    {sortedResorts.map((resort) => {
+                        const statusData = resortStatuses[resort.id];
+                        const hasLifts = statusData?.summary?.total > 0;
+                        const hasParks = statusData?.summary?.parks && statusData.summary.parks.total > 0;
+
+                        return (
+                            <div
+                                key={resort.id}
+                                onClick={() => onSelect?.(resort.id)}
+                                role="button"
+                                tabIndex={0}
+                                className={`resort-item ${onSelect ? 'clickable' : ''}`}
+                                style={{
+                                    cursor: onSelect ? 'pointer' : 'default'
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        onSelect?.(resort.id);
+                                    }
+                                }}
+                            >
+                                <div>
+                                    <h3 style={{ margin: '0 0 0.25rem 0' }}>{resort.name}</h3>
+
+                                    {/* Status Badges */}
+                                    <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {hasLifts && (
                                             <span
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setIsParkOverlayOpen(true);
+                                                    setActiveResortId(resort.id);
+                                                    setActiveOverlay('lifts');
+                                                }}
+                                                style={{
+                                                    backgroundColor: statusData.summary.open > 0 ? '#e6f4ea' : '#fce8e6',
+                                                    color: statusData.summary.open > 0 ? '#137333' : '#c5221f',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    fontWeight: 'bold',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    cursor: 'pointer'
+                                                }}>
+                                                {statusData.summary.open}/{statusData.summary.total} Lifts Open
+                                                <span style={{ fontSize: '0.7em' }}>ℹ️</span>
+                                            </span>
+                                        )}
+                                        {hasParks && statusData?.summary.parks && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveResortId(resort.id);
+                                                    setActiveOverlay('parks');
                                                 }}
                                                 style={{
                                                     backgroundColor: '#f1f3f4',
@@ -151,48 +177,49 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                                     marginLeft: '4px',
                                                     cursor: 'pointer'
                                                 }}>
-                                                {pcData.summary.parks.open}/{pcData.summary.parks.total} Parks Open
+                                                {statusData.summary.parks.open}/{statusData.summary.parks.total} Parks Open
                                                 <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>ℹ️</span>
                                             </span>
                                         )}
                                     </div>
-                                )}
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold', justifyContent: 'flex-end' }}>
-                                    <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
-                                    {resort.snow24h}"
                                 </div>
-                                {resort.temp !== undefined && (
-                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                        {resort.temp}°F
+
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold', justifyContent: 'flex-end' }}>
+                                        <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
+                                        {resort.snow24h}"
                                     </div>
-                                )}
+                                    {resort.temp !== undefined && (
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                            {resort.temp}°F
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
-            {pcData && (
+            {activeResortData && activeOverlay === 'lifts' && (
                 <LiftStatusOverlay
-                    isOpen={isOverlayOpen}
-                    onClose={() => setIsOverlayOpen(false)}
-                    resortName="Park City Mountain"
-                    lifts={pcData.lifts}
-                    summary={pcData.summary}
+                    isOpen={true}
+                    onClose={() => { setActiveOverlay(null); setActiveResortId(null); }}
+                    resortName={initialResorts.find(r => r.id === activeResortId)?.name || 'Resort'}
+                    lifts={activeResortData.lifts}
+                    summary={activeResortData.summary}
                 />
             )}
 
-            {pcData && pcData.summary.parks && (
+            {activeResortData && activeOverlay === 'parks' && activeResortData.summary.parks && (
                 <TerrainParkOverlay
-                    isOpen={isParkOverlayOpen}
-                    onClose={() => setIsParkOverlayOpen(false)}
-                    resortName="Park City Mountain"
-                    parks={pcData.summary.parks.details}
+                    isOpen={true}
+                    onClose={() => { setActiveOverlay(null); setActiveResortId(null); }}
+                    resortName={initialResorts.find(r => r.id === activeResortId)?.name || 'Resort'}
+                    parks={activeResortData.summary.parks.details}
                     summary={{
-                        open: pcData.summary.parks.open,
-                        total: pcData.summary.parks.total
+                        open: activeResortData.summary.parks.open,
+                        total: activeResortData.summary.parks.total
                     }}
                 />
             )}
