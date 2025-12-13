@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AvalancheForecast } from '../services/avalanche';
+import { AvalancheForecast } from '../types/domain';
 import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
 import { useRegion } from '../context/RegionContext';
 import { getAvalancheService } from '../services/factory';
@@ -23,7 +23,7 @@ export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destin
         const fetchForecast = async () => {
             setLoading(true);
             const avalancheService = getAvalancheService(selectedRegion.id);
-            const data = await avalancheService.getAvalancheForecast(destination);
+            const data = await avalancheService.getForecast(destination);
             setForecast(data);
             setLoading(false);
         };
@@ -94,7 +94,7 @@ export const AvalancheReportCard: React.FC<AvalancheReportCardProps> = ({ destin
                 </div>
                 <div>
                     <div style={{ fontWeight: 'bold', color: isExtreme ? dangerColor : 'inherit' }}>
-                        {forecast.dangerRatingDescription.toUpperCase()}
+                        {forecast.dangerRatingDisplay.toUpperCase()}
                     </div>
                     <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Danger Level</div>
                 </div>

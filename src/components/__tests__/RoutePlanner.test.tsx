@@ -56,7 +56,10 @@ describe('RoutePlanner', () => {
 
     beforeEach(() => {
         vi.resetAllMocks();
-        global.fetch = vi.fn();
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({})
+        } as Response);
     });
 
     it('should render from, to, and region selects', () => {
@@ -220,14 +223,11 @@ describe('RoutePlanner', () => {
         const mockIncidents = [
             {
                 id: '1',
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [-105, 39] },
-                properties: {
-                    type: 'Accident',
-                    startTime: '2025-12-05T10:00:00Z',
-                    travelerInformationMessage: 'Test incident',
-                    routeName: 'I-70'
-                }
+                type: 'Accident',
+                description: 'Test incident',
+                startTime: '2025-12-05T10:00:00Z',
+                location: { lat: 39, lon: -105 },
+                routeName: 'I-70'
             }
         ];
 
@@ -255,16 +255,11 @@ describe('RoutePlanner', () => {
         const mockConditions = [
             {
                 id: '1',
-                type: 'Feature',
-                properties: {
-                    type: 'RoadCondition',
-                    routeName: 'I-70',
-                    primaryLatitude: 39.5,
-                    primaryLongitude: -105.5,
-                    currentConditions: [
-                        { conditionDescription: 'Icy' }
-                    ]
-                }
+                type: 'RoadCondition',
+                status: 'Icy',
+                description: 'Icy',
+                location: { lat: 39.5, lon: -105.5 },
+                routeName: 'I-70'
             }
         ];
 

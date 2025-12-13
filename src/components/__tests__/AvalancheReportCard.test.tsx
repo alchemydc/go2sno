@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AvalancheReportCard } from '../AvalancheReportCard';
-import * as avalancheService from '../../services/avalanche';
-import { RegionProvider } from '../../context/RegionContext';
+import * as factoryService from '../../services/factory';
 
-vi.mock('../../services/avalanche');
+vi.mock('../../services/factory');
 
 // Mock useRegion
 vi.mock('../../context/RegionContext', () => ({
@@ -19,12 +18,18 @@ vi.mock('../../context/RegionContext', () => ({
 }));
 
 describe('AvalancheReportCard', () => {
+    const mockGetForecast = vi.fn();
+
     beforeEach(() => {
         vi.resetAllMocks();
+
+        vi.mocked(factoryService.getAvalancheService).mockReturnValue({
+            getForecast: mockGetForecast
+        });
     });
 
     it('should render loading state initially', () => {
-        vi.mocked(avalancheService.getAvalancheForecast).mockImplementation(
+        mockGetForecast.mockImplementation(
             () => new Promise(() => { }) // Never resolves
         );
 
@@ -38,13 +43,13 @@ describe('AvalancheReportCard', () => {
             zoneId: 'test-zone',
             zoneName: 'Vail & Summit County',
             dangerRating: 3,
-            dangerRatingDescription: 'Considerable',
+            dangerRatingDisplay: 'Considerable',
             summary: 'Avalanche conditions are considerable today.',
             issueDate: '2025-12-05',
             url: 'https://avalanche.state.co.us/forecasts/test'
         };
 
-        vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(mockForecast);
+        mockGetForecast.mockResolvedValue(mockForecast);
 
         render(<AvalancheReportCard destination="frisco" />);
 
@@ -57,7 +62,7 @@ describe('AvalancheReportCard', () => {
     });
 
     it('should render nothing if forecast is null', async () => {
-        vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(null);
+        mockGetForecast.mockResolvedValue(null);
 
         const { container } = render(<AvalancheReportCard destination="frisco" />);
 

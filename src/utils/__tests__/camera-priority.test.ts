@@ -1,29 +1,38 @@
 import { describe, it, expect } from 'vitest';
 import { prioritizeCameras } from '../camera-priority';
-import { Camera, Incident, RoadCondition } from '../../services/cdot';
+import { Camera, Incident, RoadCondition } from '../../types/domain';
 
 describe('prioritizeCameras', () => {
     const mockCameras: Camera[] = [
         {
             id: 'cam1',
             name: 'Camera 1 (Far)',
-            latitude: 40.0,
-            longitude: -105.0,
-            url: 'url1'
+            location: {
+                lat: 40.0,
+                lon: -105.0
+            },
+            url: 'url1',
+            regionId: 'co'
         },
         {
             id: 'cam2',
             name: 'Camera 2 (Near Incident)',
-            latitude: 39.5,
-            longitude: -106.0,
-            url: 'url2'
+            location: {
+                lat: 39.5,
+                lon: -106.0
+            },
+            url: 'url2',
+            regionId: 'co'
         },
         {
             id: 'cam3',
             name: 'Camera 3 (Near Condition)',
-            latitude: 39.0,
-            longitude: -107.0,
-            url: 'url3'
+            location: {
+                lat: 39.0,
+                lon: -107.0
+            },
+            url: 'url3',
+            regionId: 'co'
         }
     ];
 
@@ -31,29 +40,25 @@ describe('prioritizeCameras', () => {
         {
             id: 'inc1',
             type: 'Accident',
-            properties: {
-                type: 'Accident',
-                startTime: 'now',
-                travelerInformationMessage: 'Crash',
-                routeName: 'I-70'
+            description: 'Crash',
+            startTime: 'now',
+            location: {
+                lat: 39.501,
+                lon: -106.001
             },
-            geometry: {
-                type: 'Point',
-                coordinates: [-106.001, 39.501] // Very close to cam2
-            }
+            routeName: 'I-70'
         }
     ];
 
     const mockConditions: RoadCondition[] = [
         {
             id: 'cond1',
-            type: 'RoadCondition',
-            properties: {
-                type: 'RoadCondition',
-                routeName: 'I-70',
-                primaryLatitude: 39.001,
-                primaryLongitude: -107.001, // Very close to cam3
-                currentConditions: [{ conditionDescription: 'Icy' }]
+            routeName: 'I-70',
+            status: 'Icy',
+            description: 'Icy conditions',
+            location: {
+                lat: 39.001,
+                lon: -107.001
             }
         }
     ];
@@ -61,8 +66,6 @@ describe('prioritizeCameras', () => {
     it('should prioritize cameras near incidents highest', () => {
         const result = prioritizeCameras(mockCameras, mockIncidents, []);
         expect(result[0].id).toBe('cam2');
-        // Cam1 and Cam3 have same score (0), stable sort or order might vary if not handled
-        // But Cam2 must be first.
     });
 
     it('should prioritize cameras near road conditions second', () => {

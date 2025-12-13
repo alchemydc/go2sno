@@ -12,14 +12,13 @@ import { getWeather } from '../services/weather';
 import type { WeatherForecast } from '../services/weather';
 import { CloudSun } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { Incident, RoadCondition, Camera, getStreamingCameras } from '../services/cdot';
+import { Incident, RoadCondition, Camera } from '../types/domain';
 import { prioritizeCameras } from '../utils/camera-priority';
 import pointToLineDistance from '@turf/point-to-line-distance';
 import { point, lineString } from '@turf/helpers';
 import { useRegion } from '../context/RegionContext';
 import { getRoadService } from '../services/factory';
 import { getAllRegions } from '../config/regions';
-import { getCameras as getCaltransCameras } from '../services/caltrans';
 
 const regions = getAllRegions();
 
@@ -116,9 +115,8 @@ export const Dashboard: React.FC = () => {
                 const service = getRoadService(selectedRegion.id);
                 const [incidentsData, conditionsData, camerasData] = await Promise.all([
                     service.getIncidents(),
-                    service.getRoadConditions(),
-                    selectedRegion.id === 'co' ? getStreamingCameras() :
-                        selectedRegion.id === 'canv' ? getCaltransCameras() : Promise.resolve([]),
+                    service.getConditions(),
+                    service.getCameras()
                 ]);
                 setAllIncidents(incidentsData);
                 setAllConditions(conditionsData);
@@ -146,29 +144,20 @@ export const Dashboard: React.FC = () => {
             const CAMERA_MAX_DISTANCE_MILES = 1; // range beyond which cameras will be ignored for a given route
 
             const filteredIncidents = allIncidents.filter(incident => {
-                let coords: number[];
-                if (incident.geometry.type === 'MultiPoint') {
-                    coords = (incident.geometry.coordinates as number[][])[0];
-                } else if (incident.geometry.type === 'Point') {
-                    coords = incident.geometry.coordinates as number[];
-                } else {
-                    return false;
-                }
-
-                const pt = point(coords);
+                const pt = point([incident.location.lon, incident.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= MAX_DISTANCE_MILES;
             });
 
             const filteredConditions = allConditions.filter(condition => {
-                const pt = point([condition.properties.primaryLongitude, condition.properties.primaryLatitude]);
+                const pt = point([condition.location.lon, condition.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= MAX_DISTANCE_MILES;
             });
 
             const filteredCameras = allCameras.filter(camera => {
-                if (!camera.latitude || !camera.longitude) return false;
-                const pt = point([camera.longitude, camera.latitude]);
+                if (!camera.location?.lat || !camera.location?.lon) return false;
+                const pt = point([camera.location.lon, camera.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= CAMERA_MAX_DISTANCE_MILES;
             });

@@ -1,28 +1,30 @@
 import { logger } from '../utils/logger';
+import { IAvalancheService } from './interfaces';
+import { AvalancheForecast } from '../types/domain';
 
-export interface AvalancheForecast {
-    zoneId: string;
-    zoneName: string;
-    dangerRating: number; // 1-5
-    dangerRatingDescription: string; // Low, Moderate, Considerable, High, Extreme
-    summary: string;
-    issueDate: string;
-    url: string;
-}
+export class ColoradoAvalancheService implements IAvalancheService {
+    async getForecast(destinationId: string): Promise<AvalancheForecast | null> {
+        // The destinationId here might be a resort ID (vail) or a town (frisco)
+        // The API route currently handles the mapping.
+        try {
+            logger.debug('ColoradoAvalancheService: fetching forecast', { destinationId });
+            const response = await fetch(`/api/avalanche?destination=${encodeURIComponent(destinationId)}`);
 
-export const getAvalancheForecast = async (destination: string): Promise<AvalancheForecast | null> => {
-    try {
-        const response = await fetch(`/api/avalanche?destination=${encodeURIComponent(destination)}`);
+            if (!response.ok) {
+                logger.warn(`Failed to fetch avalanche forecast: ${response.statusText}`);
+                return null;
+            }
 
-        if (!response.ok) {
-            logger.warn(`Failed to fetch avalanche forecast: ${response.statusText}`);
+            return await response.json();
+        } catch (e) {
+            logger.error('Error fetching avalanche forecast:', e);
             return null;
         }
-
-        return await response.json();
-    } catch (e) {
-        logger.error('Error fetching avalanche forecast:', e);
-        return null;
     }
-};
+}
+
+// Legacy export for compatibility
+export const getAvalancheForecast = async (destination: string) =>
+    new ColoradoAvalancheService().getForecast(destination);
+
 

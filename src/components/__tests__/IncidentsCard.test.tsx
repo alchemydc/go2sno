@@ -24,37 +24,29 @@ describe('IncidentsCard', () => {
         const mockIncidents = [
             {
                 id: '1',
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [-105, 39] },
-                properties: {
-                    type: 'Accident',
-                    startTime: '2025-12-05T10:00:00Z',
-                    travelerInformationMessage: 'Vehicle accident on I-70',
-                    routeName: 'I-70'
-                }
+                type: 'Accident',
+                description: 'Test incident detected',
+                startTime: '2025-12-05T10:00:00Z',
+                location: { lat: 39, lon: -105 },
+                routeName: 'I-70'
             }
         ];
 
         render(<IncidentsCard incidents={mockIncidents} conditions={[]} loading={false} />);
 
         expect(screen.getByText('Accident')).toBeInTheDocument();
-        expect(screen.getByText('Vehicle accident on I-70')).toBeInTheDocument();
+        expect(screen.getByText('Test incident detected')).toBeInTheDocument();
     });
 
     it('should render road conditions', () => {
         const mockConditions = [
             {
                 id: '1',
-                type: 'Feature',
-                properties: {
-                    type: 'RoadCondition',
-                    routeName: 'I-70',
-                    primaryLatitude: 39.5,
-                    primaryLongitude: -105.5,
-                    currentConditions: [
-                        { conditionDescription: 'Icy conditions' }
-                    ]
-                }
+                type: 'RoadCondition',
+                status: 'Icy',
+                description: 'Icy conditions',
+                location: { lat: 39.5, lon: -105.5 },
+                routeName: 'I-70'
             }
         ];
 

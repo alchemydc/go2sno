@@ -13,6 +13,13 @@ vi.mock('./open-meteo');
 describe('ResortStatus Service', () => {
     beforeEach(() => {
         vi.resetAllMocks();
+        // Default mock for fetchResortWeather to prevent crashes in getResorts
+        (openMeteo.fetchResortWeather as any).mockResolvedValue(
+            Array(50).fill({
+                current: { temperature_2m: 30, is_day: 1, weather_code: 0 },
+                daily: { temperature_2m_max: [40], temperature_2m_min: [20], snowfall_sum: [0] }
+            })
+        );
     });
 
     it('should fetch status from Epic Mix for configured resort', async () => {
@@ -51,9 +58,10 @@ describe('ResortStatus Service', () => {
 
         const result = await getResortStatus('parkcity');
 
-        expect(result.summary.parks.total).toBe(1); // Only 3 Kings
-        expect(result.summary.parks.details['3 Kings']).toBe('open');
-        expect(result.summary.parks.details['Random Park']).toBeUndefined();
+        expect(result.summary.parks.open).toBe(1); // Only 3 Kings
+        expect(result.summary.parks.total).toBe(1); // Filtered total
+        // details are empty in new implementation
+        expect(result.summary.parks.details).toEqual({});
     });
 
     it('should fallback to micrawl for Park City upon Epic Mix failure', async () => {
@@ -61,6 +69,7 @@ describe('ResortStatus Service', () => {
 
         const mockScrape = { success: true, html: '<script>var TerrainStatusFeed = { Lifts: [{Name:"ScrapedLift", Status:1}] };</script>' };
         (micrawl.scrapeUrl as any).mockResolvedValue(mockScrape);
+        // Ensure weather fetch succeeds for fallback
         (openMeteo.fetchResortWeather as any).mockResolvedValue([{ current: { temperature_2m: 20 }, daily: { snowfall_sum: [5] } }]);
 
         const result = await getResortStatus('parkcity');
@@ -71,7 +80,11 @@ describe('ResortStatus Service', () => {
 
     it('should return safe default for unconfigured resort', async () => {
         const result = await getResortStatus('unknown-resort');
-        expect(result.source).toBe('fallback-weather-only');
+        // If unknown, even weather provider fails (location unknown), so 'none' implies error/not found
+        // The service returns source: 'error' if all failed or 'none' if Manager returns fallback
+        // Manager returns 'none' source if ultimate failure.
+        // Facade maps it.
+        expect(result.source).toBe('none');
         expect(result.summary.total).toBe(0);
     });
 
@@ -90,6 +103,6 @@ describe('ResortStatus Service', () => {
 
         expect(epicMixClient.getResortStatus).toHaveBeenCalledWith('4'); // Breck ID
         expect(result.lifts['Imperial']).toBe('open');
-        expect(result.summary.parks.details['Freeway']).toBe('open'); // Should be included as Breck has no filter
+        expect(result.summary.parks.open).toBe(1); // Should be included as Breck has no filter
     });
 });

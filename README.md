@@ -1,29 +1,41 @@
 # go2sno
 
-A real-time dashboard for snow-philes of all stripes to check travel times, road conditions, avalanche forecasts, weather, and resort status. Inspired by [snowgogo.com](https://snowgogo.com).
+A real-time dashboard for snow-philes of all stripes to check travel times, road conditions, avalanche forecasts, weather, and resort status (lifts/terrain). Inspired by [snowgogo.com](https://snowgogo.com) which is awesome, but unfortunately only supports Tahoe.
 
-## What Works (Rocky Mountain region)
-*   **Dashboard:** Aggregated view of route, reported delays, avalanche forecasts, cameras, weather, and resorts.
-*   **Route Planner:** Interactive map with routing to and from major snow destinations.
-*   **Real-time Alerts:** Integration with COtrip API for active road incidents and travel alerts.
-*   **Road Cameras:** Live HLS streaming video feeds from CDOT cameras along the route.
-*   **Weather:** Real-time weather data for the selected destination (NWS API).
-*   **Avalanche Forecasts:**  Avalanche forecast for selected destination from CAIC.
-*   **Resort Status:** Sortable list of resort snow reports.
-    *   *Note:* Real-time weather and "24h Snow" provided by [Open-Meteo](https://open-meteo.com/). The "24h Snow" value represents the *forecasted* snowfall for the current day.
-*   **Live Lift Status (Park City):** Real-time lift and terrain status scraped via [Micrawl](https://github.com/gustavovalverde/micrawl) to bypass anti-bot protections.
-*   **Tahoe Road Conditions:** Integration with California/NV Department of Transportation API for road conditions and cameras. Note that a CORS error is intermittently breaking playback of Caltrans CCTV feeds.
-*   **Dark Mode:** Full dark theme support.
+## Features
 
-## Work Planned
-*   **Utah Avalanche Forecasts:** Integration with Utah Avalanche Center API for avalanche forecasts.
-*   **Utah Road Conditions:** Integration with Utah Department of Transportation API for road conditions. 
-*   **Tahoe Avalanche Forecasts:** Integration with Tahoe Avalanche Center API for avalanche forecasts.
-conditions. (?)
-*   **Real Resort Lift Status:** Integration with resort APIs (e.g., Epic/Ikon) for live lift status and snow reports. Started with Park City using Micrawl; expanding to others.
-*   **Mobile Optimization:** Improved touch controls and layout refinements for small screens.
+*   **Multi-Region Support:** Seamlessly switch between **Colorado**, **Utah**, and **Tahoe**.
+*   **Trip Planner:** Interactive map with routing to and from major snow destinations (Gateways to Resorts).
+*   **Real-time Travel Alerts:** Integration with CDOT (COtrip) and TomTom for active road incidents and travel times.
+*   **Road Cameras:** Live HLS streaming video feeds from CDOT and Caltrans.
+*   **Weather:** Real-time weather data and forecasts (NWS API).
+*   **Resort Status:** Unified view of lift & trail status across different ownership groups (Epic, Ikon, Independent).
+    *   *Data Sources:* Direct API integration (Epic Mix), Web Scraping (Micrawl fallback), and Weather-based inference.
+    *   *Metrics:* Open lifts, terrain park status, and 24h snow totals.
+*   **Avalanche Forecasts:**  Regional avalanche danger ratings from CAIC (Colorado). Stubs in place for UAC (Utah) and SAC (Sierra).
 
+## Architecture
 
+This project uses a modern, extensible architecture designed to support multiple regions and diverse data sources.
+
+### Core Concepts
+
+1.  **Region Configuration (`src/config/regions.ts`)**: 
+    - The app is driven by a configuration file that defines regions (e.g., `co`, `ut`, `tahoe`). 
+    - Each region defines its map bounds, resorts, and active service providers (e.g., which Road API to use).
+
+2.  **Service Factory (`src/services/factory.ts`)**: 
+    - A central factory instantiates the correct services based on the selected region.
+    - **Road Service:** Returns `IRoadService` (e.g., `CdotRoadService` for CO, `CaltransRoadService` for Tahoe, `UdotRoadService` stub for Utah).
+    - **Avalanche Service:** Returns `IAvalancheService` (e.g., `CaicAvalancheService` for CO).
+
+3.  **Unified Resort Data (`src/services/snow-report`)**:
+    - **`ResortStatusManager`**: A robust orchestrator that fetches data from multiple providers.
+    - **Providers**: 
+        - `EpicMixProvider`: Fetches real-time status for Vail Resorts.
+        - `MicrawlProvider`: Scrapes resort websites as a fallback.
+        - `OpenMeteoProvider`: Provides weather and snow data.
+    - **Domain Model**: All data is normalized into a shared `ResortStatus` interface, isolating the UI from API differences.
 
 ## Getting Started
 
@@ -58,9 +70,10 @@ conditions. (?)
 *   **Language:** TypeScript
 *   **Styling:** Vanilla CSS (with CSS Variables for theming)
 *   **Icons:** Lucide React
+*   **Mapping:** MapLibre GL
 *   **Data Sources:**
-    *   COtrip API (Road Incidents & Conditions)
-    *   TomTom (routing)
-      - `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
-    *   National Weather Service API (Weather)
-    *   Micrawl (Resort Status Scraping)
+    *   COtrip API / Caltrans (Roads)
+    *   TomTom (Routing)
+    *   National Weather Service (Weather)
+    *   Open-Meteo (Snow Reports)
+    *   CAIC (Avalanche)

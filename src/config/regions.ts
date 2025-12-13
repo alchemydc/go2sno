@@ -25,6 +25,12 @@ export interface Region {
         roads: boolean; // COtrip, UDOT, Caltrans
         avalanche: boolean; // CAIC, UAC, SAC
     };
+
+    // Service Provider Configuration
+    providers: {
+        road: 'cdot' | 'caltrans' | 'udot' | 'stub';
+        avalanche: 'caic' | 'uac' | 'sac' | 'stub';
+    };
 }
 
 export const REGIONS: Record<string, Region> = {
@@ -65,6 +71,10 @@ export const REGIONS: Record<string, Region> = {
             roads: true,
             avalanche: true,
         },
+        providers: {
+            road: 'cdot',
+            avalanche: 'caic',
+        },
     },
     ut: {
         id: 'ut',
@@ -88,9 +98,13 @@ export const REGIONS: Record<string, Region> = {
             roads: false, // Future: UDOT
             avalanche: false, // Future: UAC
         },
+        providers: {
+            road: 'udot', // Will use stub for now
+            avalanche: 'uac', // Will use stub for now
+        },
     },
-    canv: {
-        id: 'canv',
+    tahoe: {
+        id: 'tahoe',
         name: 'Tahoe',
         displayName: 'Tahoe',
         center: [-120.0, 39.0], // Tahoe area
@@ -120,6 +134,10 @@ export const REGIONS: Record<string, Region> = {
             weather: true,
             roads: false, // Future: Caltrans
             avalanche: false, // Future: SAC
+        },
+        providers: {
+            road: 'caltrans',
+            avalanche: 'sac', // Will use stub for now
         },
     },
 };

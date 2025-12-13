@@ -14,7 +14,7 @@ interface RouteStats {
 // Coordinates for locations
 // This is now passed as a prop from the Dashboard which gets it from the RegionContext
 
-import { Incident, RoadCondition } from '../services/cdot';
+import { Incident, RoadCondition } from '../types/domain';
 
 export interface LocationOption {
     id: string;
@@ -185,10 +185,13 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 type: 'FeatureCollection',
                 features: incidents.map(incident => ({
                     type: 'Feature',
-                    geometry: incident.geometry,
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [incident.location.lon, incident.location.lat]
+                    },
                     properties: {
-                        type: incident.properties.type || 'Incident',
-                        description: incident.properties.travelerInformationMessage || incident.properties.type || 'Road incident reported'
+                        type: incident.type,
+                        description: incident.description
                     }
                 }))
             };
@@ -222,12 +225,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     type: 'Feature',
                     geometry: {
                         type: 'Point',
-                        coordinates: [condition.properties.primaryLongitude, condition.properties.primaryLatitude]
+                        coordinates: [condition.location.lon, condition.location.lat]
                     },
                     properties: {
-                        description: condition.properties.currentConditions?.map(c => c.conditionDescription).join(', ') ||
-                            condition.properties.routeName ||
-                            'Road condition reported'
+                        description: `${condition.routeName}: ${condition.status} - ${condition.description}`
                     }
                 }))
             };

@@ -2,14 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import * as weatherService from '../../services/weather';
-import * as cdotService from '../../services/cdot';
+import * as factoryService from '../../services/factory';
 import * as resortsService from '../../services/resorts';
 import * as avalancheService from '../../services/avalanche';
+
 vi.mock('../../services/weather');
-vi.mock('../../services/cdot');
 vi.mock('../../services/resorts');
 vi.mock('../../services/avalanche');
 vi.mock('maplibre-gl');
+vi.mock('../../services/factory');
 
 // Mock useRegion
 vi.mock('../../context/RegionContext', () => ({
@@ -38,7 +39,6 @@ vi.mock('@turf/helpers', () => ({
 // Mock RoutePlanner to simulate user interaction
 vi.mock('../RoutePlanner', () => ({
     RoutePlanner: ({ onDestinationChange, onRouteUpdate, onFromChange }: any) => {
-        // Expose controls to the test if needed, or just auto-trigger
         return (
             <div data-testid="route-planner">
                 <button onClick={() => {
@@ -58,8 +58,26 @@ vi.mock('../RoutePlanner', () => ({
 }));
 
 describe('Dashboard', () => {
+    // Create queryable spies for the service methods
+    const mockGetIncidents = vi.fn();
+    const mockGetConditions = vi.fn();
+    const mockGetCameras = vi.fn();
+    const mockGetForecast = vi.fn();
+
     beforeEach(() => {
         vi.resetAllMocks();
+
+        // Setup the mock road service
+        vi.mocked(factoryService.getRoadService).mockReturnValue({
+            getIncidents: mockGetIncidents,
+            getConditions: mockGetConditions,
+            getCameras: mockGetCameras
+        });
+
+        // Setup the mock avalanche service
+        vi.mocked(factoryService.getAvalancheService).mockReturnValue({
+            getForecast: mockGetForecast
+        });
 
         vi.mocked(weatherService.getWeather).mockResolvedValue({
             temperature: 32,
@@ -68,8 +86,9 @@ describe('Dashboard', () => {
             icon: 'https://example.com/icon.png'
         });
 
-        vi.mocked(cdotService.getIncidents).mockResolvedValue([]);
-        vi.mocked(cdotService.getRoadConditions).mockResolvedValue([]);
+        // Default empty responses
+        mockGetIncidents.mockResolvedValue([]);
+        mockGetConditions.mockResolvedValue([]);
 
         // Return 5 cameras to trigger the "View All" button
         const mockCameras = Array.from({ length: 5 }, (_, i) => ({
@@ -77,12 +96,12 @@ describe('Dashboard', () => {
             name: `Camera ${i}`,
             url: 'http://test.com',
             thumbnailUrl: 'http://test.com',
-            latitude: 39.6,
-            longitude: -106.0
+            location: { lat: 39.6, lon: -106.0 },
+            regionId: 'co'
         }));
-        vi.mocked(cdotService.getStreamingCameras).mockResolvedValue(mockCameras);
+        mockGetCameras.mockResolvedValue(mockCameras);
 
-        vi.mocked(avalancheService.getAvalancheForecast).mockResolvedValue(null);
+        mockGetForecast.mockResolvedValue(null);
 
         vi.mocked(resortsService.getResorts).mockResolvedValue([
             { id: 'vail', name: 'Vail', snow24h: 5, totalLifts: 31, lat: 39.6, lon: -106.3 }
@@ -150,18 +169,20 @@ describe('Dashboard', () => {
         });
 
         // Assert calls did NOT happen yet
-        expect(cdotService.getIncidents).not.toHaveBeenCalled();
-        expect(cdotService.getRoadConditions).not.toHaveBeenCalled();
-        expect(cdotService.getStreamingCameras).not.toHaveBeenCalled();
+        expect(mockGetIncidents).not.toHaveBeenCalled();
+        expect(mockGetConditions).not.toHaveBeenCalled();
+        // Cameras are fetched via priority/filtering logic now which might happen earlier if implemented differently,
+        // but in Dashboard they depend on destination which is set by route planner simulation
+        expect(mockGetCameras).not.toHaveBeenCalled();
 
         // Now trigger route selection
         fireEvent.click(screen.getByText('Select Route'));
 
         // Now they should be called
         await waitFor(() => {
-            expect(cdotService.getIncidents).toHaveBeenCalled();
-            expect(cdotService.getRoadConditions).toHaveBeenCalled();
-            expect(cdotService.getStreamingCameras).toHaveBeenCalled();
+            expect(mockGetIncidents).toHaveBeenCalled();
+            expect(mockGetConditions).toHaveBeenCalled();
+            expect(mockGetCameras).toHaveBeenCalled();
         });
     });
 
@@ -177,9 +198,9 @@ describe('Dashboard', () => {
         fireEvent.click(screen.getByText('Vail'));
 
         // Verify that the route planner update logic is triggered
-        // We can check if getIncidents/getRoadConditions is called, as that happens when destination is set
+        // We can check if getIncidents/getConditions is called, as that happens when destination is set
         await waitFor(() => {
-            expect(cdotService.getIncidents).toHaveBeenCalled();
+            expect(mockGetIncidents).toHaveBeenCalled();
         });
     });
 });

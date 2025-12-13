@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 import { Play } from 'lucide-react';
-import type { Camera } from '../services/cdot';
+import type { Camera } from '../types/domain';
 import { logger } from '../utils/logger';
 
 interface CameraCardProps {

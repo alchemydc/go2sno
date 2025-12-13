@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Camera } from '../services/cdot';
+import type { Camera } from '../types/domain';
 import { Video } from 'lucide-react';
 import { CameraCard } from './CameraCard';
 

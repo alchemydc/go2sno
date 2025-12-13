@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getTrafficData, getIncidents, getRoadConditions, getStreamingCameras } from '../cdot';
+import { getIncidents, getRoadConditions, getStreamingCameras } from '../cdot';
 
 describe('cdot service', () => {
     beforeEach(() => {
@@ -8,21 +8,10 @@ describe('cdot service', () => {
 
     // getCameras is deprecated - use getStreamingCameras instead (requires region check)
 
-    describe('getTrafficData', () => {
-        it('should return list of traffic segments', async () => {
-            const segments = await getTrafficData();
 
-            expect(segments).toBeInstanceOf(Array);
-            expect(segments.length).toBeGreaterThan(0);
-            expect(segments[0]).toHaveProperty('id');
-            expect(segments[0]).toHaveProperty('name');
-            expect(segments[0]).toHaveProperty('status');
-            expect(segments[0]).toHaveProperty('travelTime');
-        });
-    });
 
     describe('getIncidents', () => {
-        it('should fetch incidents from API', async () => {
+        it('should fetch incidents from API and map to domain objects', async () => {
             const mockIncidents = {
                 features: [
                     {
@@ -46,7 +35,15 @@ describe('cdot service', () => {
 
             const result = await getIncidents();
 
-            expect(result).toEqual(mockIncidents.features);
+            expect(result).toHaveLength(1);
+            expect(result[0]).toEqual({
+                id: '1',
+                type: 'Accident',
+                description: 'Test incident',
+                startTime: '2025-12-05T10:00:00Z',
+                location: { lat: 39, lon: -105 },
+                routeName: 'I-70'
+            });
             expect(global.fetch).toHaveBeenCalledWith('/api/incidents');
         });
 
@@ -60,7 +57,7 @@ describe('cdot service', () => {
     });
 
     describe('getRoadConditions', () => {
-        it('should fetch road conditions from API', async () => {
+        it('should fetch road conditions from API and map to domain objects', async () => {
             const mockConditions = {
                 features: [
                     {
@@ -86,7 +83,13 @@ describe('cdot service', () => {
 
             const result = await getRoadConditions();
 
-            expect(result).toEqual(mockConditions.features);
+            expect(result).toHaveLength(1);
+            expect(result[0]).toEqual({
+                location: { lat: 39.5, lon: -105.5 },
+                routeName: 'I-70',
+                status: 'Icy',
+                description: 'Icy'
+            });
             expect(global.fetch).toHaveBeenCalledWith('/api/road-conditions');
         });
 
@@ -155,16 +158,24 @@ describe('cdot service', () => {
                 name: 'Test Camera 1',
                 url: 'https://publicstreamer1.cotrip.org/rtplive/test/playlist.m3u8',
                 thumbnailUrl: 'https://cocam.carsprogram.org/Snapshots/test.png',
-                latitude: 39.5,
-                longitude: -105.5
+                type: 'stream',
+                location: {
+                    lat: 39.5,
+                    lon: -105.5
+                },
+                regionId: 'co'
             });
             expect(result[1]).toEqual({
                 id: '456',
                 name: 'Test Camera 2',
                 url: 'https://publicstreamer2.cotrip.org/rtplive/test2/playlist.m3u8',
                 thumbnailUrl: 'https://cocam.carsprogram.org/Snapshots/test2.png',
-                latitude: 40.0,
-                longitude: -106.0
+                type: 'stream',
+                location: {
+                    lat: 40.0,
+                    lon: -106.0
+                },
+                regionId: 'co'
             });
         });
 
