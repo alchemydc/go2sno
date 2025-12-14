@@ -100,4 +100,28 @@ describe('ResortList', () => {
             expect(resortNames[2]).toHaveTextContent('Copper Mountain');
         });
     });
+    it('should sort by pass type', async () => {
+        const resortsWithPass = [
+            { id: 'copper', name: 'Copper', snow24h: 5, totalLifts: 24, lat: 0, lon: 0, affiliation: 'ikon' as const },
+            { id: 'breck', name: 'Breck', snow24h: 8, totalLifts: 35, lat: 0, lon: 0, affiliation: 'epic' as const },
+            { id: 'abasin', name: 'Abasin', snow24h: 3, totalLifts: 9, lat: 0, lon: 0, affiliation: 'ikon' as const },
+            { id: 'loveland', name: 'Loveland', snow24h: 4, totalLifts: 9, lat: 0, lon: 0 } // Independent
+        ];
+
+        render(<ResortList resorts={resortsWithPass} />);
+
+        const select = screen.getByRole('combobox');
+        fireEvent.change(select, { target: { value: 'pass' } });
+
+        await waitFor(() => {
+            const resortNames = screen.getAllByRole('heading', { level: 3 });
+            // Ikon first (Copper 5", Abasin 3")
+            expect(resortNames[0]).toHaveTextContent('Copper');
+            expect(resortNames[1]).toHaveTextContent('Abasin');
+            // Epic second
+            expect(resortNames[2]).toHaveTextContent('Breck');
+            // Independent last
+            expect(resortNames[3]).toHaveTextContent('Loveland');
+        });
+    });
 });

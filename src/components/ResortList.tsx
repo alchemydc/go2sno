@@ -30,7 +30,7 @@ interface ResortData {
 export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts, onSelect }) => {
     const { selectedRegion } = useRegion();
     const [sortedResorts, setSortedResorts] = useState<Resort[]>([]);
-    const [sortBy, setSortBy] = useState<'snow' | 'name'>('snow');
+    const [sortBy, setSortBy] = useState<'snow' | 'name' | 'pass'>('snow');
 
     const [resortStatuses, setResortStatuses] = useState<Record<string, ResortData>>({});
     const [activeResortId, setActiveResortId] = useState<string | null>(null);
@@ -44,6 +44,17 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
 
         const sorted = [...initialResorts].sort((a, b) => {
             if (sortBy === 'snow') return b.snow24h - a.snow24h;
+            if (sortBy === 'pass') {
+                const getScore = (r: Resort) => {
+                    if (r.affiliation === 'ikon') return 3;
+                    if (r.affiliation === 'epic') return 2;
+                    return 1;
+                };
+                const scoreA = getScore(a);
+                const scoreB = getScore(b);
+                if (scoreA !== scoreB) return scoreB - scoreA;
+                return b.snow24h - a.snow24h;
+            }
             return a.name.localeCompare(b.name);
         });
         setSortedResorts(sorted);
@@ -85,7 +96,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
         return null;
     }
 
-    const handleSort = (type: 'snow' | 'name') => {
+    const handleSort = (type: 'snow' | 'name' | 'pass') => {
         setSortBy(type);
     };
 
@@ -102,10 +113,11 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                     <div>
                         <select
                             value={sortBy}
-                            onChange={(e) => handleSort(e.target.value as 'snow' | 'name')}
+                            onChange={(e) => handleSort(e.target.value as 'snow' | 'name' | 'pass')}
                             style={{ padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
                         >
                             <option value="snow">Sort by Snow</option>
+                            <option value="pass">Sort by Pass</option>
                             <option value="name">Sort by Name</option>
                         </select>
                     </div>
