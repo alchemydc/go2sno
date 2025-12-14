@@ -174,11 +174,11 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                                     fontWeight: 'bold',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    marginLeft: '4px',
+                                                    gap: '4px',
                                                     cursor: 'pointer'
                                                 }}>
                                                 {statusData.summary.parks.open}/{statusData.summary.parks.total} Parks Open
-                                                <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>ℹ️</span>
+                                                <span style={{ fontSize: '0.7em' }}>ℹ️</span>
                                             </span>
                                         )}
                                     </div>

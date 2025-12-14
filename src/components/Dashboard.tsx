@@ -201,8 +201,8 @@ export const Dashboard: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <h1 style={{ color: 'var(--color-primary)', fontSize: '2.5rem', margin: 0, lineHeight: 1 }}>go2sno</h1>
-                        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>Real-time snow, weather, avalanche and road conditions.</p>
+
+                        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>play in the snow</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
