@@ -194,6 +194,15 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                             {resort.temp}°F
                                         </div>
                                     )}
+                                    {resort.affiliation && (
+                                        <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'flex-end' }}>
+                                            <img
+                                                src={resort.affiliation === 'epic' ? '/epic_pass_logo.png' : '/ikon_pass_logo.png'}
+                                                alt={`${resort.affiliation} pass`}
+                                                style={{ height: '16px', opacity: 0.8 }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );

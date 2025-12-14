@@ -1,6 +1,8 @@
 import { fetchResortWeather } from './open-meteo';
 import { getRegion } from '../config/regions';
 import { logger } from '../utils/logger';
+import { EPIC_RESORT_MAP } from '../config/epic-resorts';
+import { IKON_RESORT_MAP } from '../config/ikon-resorts';
 
 export interface Resort {
     id: string;
@@ -11,6 +13,7 @@ export interface Resort {
     lon: number;
     temp?: number;
     weatherDesc?: string;
+    affiliation?: 'epic' | 'ikon';
 }
 
 // Static definitions of resorts
@@ -53,33 +56,56 @@ const RESORT_LOCATIONS = [
 export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => {
     logger.debug('Getting resorts for region:', { regionId });
 
-    // 1. Get region definition to check which resorts belong to it
-    const region = getRegion(regionId);
+    try {
+        // 1. Get region definition to check which resorts belong to it
+        const region = getRegion(regionId);
 
-    // 2. Filter resorts
-    const filteredResorts = RESORT_LOCATIONS.filter(r => region.resortIds.includes(r.id));
+        if (!region) {
+            logger.error('Region not found', { regionId });
+            return [];
+        }
 
-    logger.debug(`Found ${filteredResorts.length} resorts for region ${regionId}`);
+        // 2. Filter resorts
+        const filteredResorts = RESORT_LOCATIONS.filter(r => region.resortIds.includes(r.id));
 
-    if (filteredResorts.length === 0) {
-        logger.warn(`No resorts found for region ${regionId} in resort service`);
+        logger.debug(`Found ${filteredResorts.length} resorts for region ${regionId}`);
+
+        if (filteredResorts.length === 0) {
+            logger.warn(`No resorts found for region ${regionId} in resort service`);
+            return [];
+        }
+
+        // 3. Fetch weather for filtered locations
+        const weatherData = await fetchResortWeather(
+            filteredResorts.map(r => ({ lat: r.lat, lon: r.lon }))
+        );
+
+        // 4. Merge static data with dynamic weather data and determine affiliation
+        return filteredResorts.map((resort, index) => {
+            const localWeather = weatherData[index];
+
+            let affiliation: 'epic' | 'ikon' | undefined;
+            if (EPIC_RESORT_MAP[resort.id]) {
+                affiliation = 'epic';
+            } else if (IKON_RESORT_MAP[resort.id]) {
+                affiliation = 'ikon';
+            }
+
+            logger.debug('Resort processed', { id: resort.id, affiliation });
+
+            return {
+                ...resort,
+                // Open-Meteo returns daily arrays. Index 0 is "today".
+                snow24h: localWeather?.daily?.snowfall_sum?.[0] || 0,
+                temp: localWeather?.current?.temperature_2m,
+                affiliation
+            };
+        });
+
+    } catch (error) {
+        logger.error("Error in getResorts", { error, regionId });
+        // Return empty or throw? Original didn't throw but filteredResorts map logic would fail if not reached.
+        // We'll return empty to be safe
         return [];
     }
-
-    // 3. Fetch weather for filtered locations
-    const weatherData = await fetchResortWeather(
-        filteredResorts.map(r => ({ lat: r.lat, lon: r.lon }))
-    );
-
-    // 4. Merge static data with dynamic weather data
-    return filteredResorts.map((resort, index) => {
-        const localWeather = weatherData[index];
-
-        return {
-            ...resort,
-            // Open-Meteo returns daily arrays. Index 0 is "today".
-            snow24h: localWeather?.daily?.snowfall_sum?.[0] || 0,
-            temp: localWeather?.current?.temperature_2m,
-        };
-    });
 };
