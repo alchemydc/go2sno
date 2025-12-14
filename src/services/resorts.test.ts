@@ -11,7 +11,7 @@ vi.mock('./open-meteo', () => ({
 
 vi.mock('../config/regions', () => ({
     getRegion: vi.fn((id) => {
-        if (id === 'co') return { resortIds: ['winterpark', 'breck', 'abasin'] };
+        if (id === 'co') return { resortIds: ['winterpark', 'breck', 'abasin', 'copper'] };
         return null;
     })
 }));
@@ -22,7 +22,10 @@ vi.mock('../config/epic-resorts', () => ({
 }));
 
 vi.mock('../config/ikon-resorts', () => ({
-    IKON_RESORT_MAP: { 'winterpark': { ikonId: 5 } }
+    IKON_RESORT_MAP: {
+        'winterpark': { ikonId: 5 },
+        'copper': { ikonId: 55 }
+    }
 }));
 
 describe('Resort Service', () => {
@@ -31,6 +34,7 @@ describe('Resort Service', () => {
 
         const winterpark = resorts.find(r => r.id === 'winterpark');
         const breck = resorts.find(r => r.id === 'breck');
+        const copper = resorts.find(r => r.id === 'copper');
         const abasin = resorts.find(r => r.id === 'abasin');
 
         expect(winterpark).toBeDefined();
@@ -38,6 +42,9 @@ describe('Resort Service', () => {
 
         expect(breck).toBeDefined();
         expect(breck?.affiliation).toBe('epic');
+
+        expect(copper).toBeDefined();
+        expect(copper?.affiliation).toBe('ikon');
 
         expect(abasin).toBeDefined();
         // A-Basin is neither Epic nor Ikon in this mock scenario

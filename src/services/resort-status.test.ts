@@ -58,10 +58,14 @@ describe('ResortStatus Service', () => {
 
         const result = await getResortStatus('parkcity');
 
-        expect(result.summary.parks.open).toBe(1); // Only 3 Kings
-        expect(result.summary.parks.total).toBe(1); // Filtered total
-        // details are empty in new implementation
-        expect(result.summary.parks.details).toEqual({});
+        expect(result.summary.parks.open).toBe(2); // Both parks should be counted now (dynamic discovery)
+        expect(result.summary.parks.total).toBe(2);
+
+        // Verify details are populated
+        expect(result.summary.parks.details).toEqual({
+            '3 Kings': 'open',
+            'Random Park': 'open'
+        });
     });
 
     it('should fallback to micrawl for Park City upon Epic Mix failure', async () => {

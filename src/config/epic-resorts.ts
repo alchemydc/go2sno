@@ -7,15 +7,7 @@ export interface EpicResortConfig {
 export const EPIC_RESORT_MAP: Record<string, EpicResortConfig> = {
     'parkcity': {
         epicId: '14',
-        parkNames: [
-            "Little Kings",
-            "Pick Axe",
-            "Transitions Terrain Park",
-            "3 Kings",
-            "Half Pipe",
-            "Mini Pipe",
-            "Pick 'N Shovel"
-        ]
+        parkNames: []
     },
     'breck': {
         epicId: '4',

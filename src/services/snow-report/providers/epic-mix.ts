@@ -42,6 +42,7 @@ export class EpicMixProvider implements ISnowReportProvider {
             // Normalize Parks
             let openParksCount = 0;
             let totalParksCount = 0;
+            const parkDetails: Record<string, string> = {};
 
             // Filter park names if config has specific list
             const hasParkFilter = config.parkNames.length > 0;
@@ -50,8 +51,12 @@ export class EpicMixProvider implements ISnowReportProvider {
             statusData.terrainParks.forEach(park => {
                 const name = park.name.trim();
                 if (!hasParkFilter || knownParks.has(name)) {
-                    if (park.openingStatus === 'OPEN') openParksCount++;
+                    // Populate details
+                    const isOpen = park.openingStatus === 'OPEN';
+                    if (isOpen) openParksCount++;
                     totalParksCount++;
+
+                    parkDetails[name] = isOpen ? 'open' : 'closed';
                 }
             });
 
@@ -63,7 +68,8 @@ export class EpicMixProvider implements ISnowReportProvider {
                     totalLifts: totalLiftsCount,
                     percentOpen: totalLiftsCount > 0 ? Math.round((openLiftsCount / totalLiftsCount) * 100) : 0,
                     openParks: openParksCount,
-                    totalParks: totalParksCount
+                    totalParks: totalParksCount,
+                    details: parkDetails
                 },
                 lifts,
                 weather: {

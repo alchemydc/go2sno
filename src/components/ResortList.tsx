@@ -225,7 +225,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                     isOpen={true}
                     onClose={() => { setActiveOverlay(null); setActiveResortId(null); }}
                     resortName={initialResorts.find(r => r.id === activeResortId)?.name || 'Resort'}
-                    parks={activeResortData.summary.parks.details}
+                    parks={activeResortData.summary.parks.details || {}}
                     summary={{
                         open: activeResortData.summary.parks.open,
                         total: activeResortData.summary.parks.total

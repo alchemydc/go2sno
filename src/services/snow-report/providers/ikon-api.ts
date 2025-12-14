@@ -51,12 +51,47 @@ export class IkonApiProvider implements ISnowReportProvider {
             // Ikon returns parks as trails with TrailIcon="Park"
             let openParksCount = 0;
             const totalParksCount = data.terrainParks.length;
+            const parkDetails: Record<string, string> = {};
 
             data.terrainParks.forEach(park => {
-                if (park.Status === 'Open') {
+                const name = park.Name;
+                const isOpen = park.Status === 'Open';
+
+                if (isOpen) {
                     openParksCount++;
                 }
+                parkDetails[name] = isOpen ? 'open' : 'closed';
             });
+
+            if (totalLiftsCount === 0) {
+                logger.warn('IkonApiProvider: No detailed lift data found, attempting aggregate summary fallback', { resortId });
+
+                const summaryData = await ikonClient.getResortSummary(config.ikonId);
+                if (summaryData) {
+                    logger.info('IkonApiProvider: Found aggregate summary data', { resortId });
+                    return {
+                        resortId,
+                        timestamp: new Date().toISOString(),
+                        summary: {
+                            openLifts: summaryData.TotalOpenLifts || 0,
+                            totalLifts: summaryData.TotalLifts || 0,
+                            percentOpen: summaryData.TotalLifts > 0 ? Math.round((summaryData.TotalOpenLifts / summaryData.TotalLifts) * 100) : 0,
+                            openParks: 0, // Not available in summary feed
+                            totalParks: 0,
+                            details: {}
+                        },
+                        lifts: {}, // No detailed list available
+                        weather: {
+                            tempCurrent: 0,
+                            snow24h: 0
+                        },
+                        source: 'ikon-api-summary'
+                    };
+                }
+
+                logger.warn('IkonApiProvider: No summary data found either, returning null', { resortId });
+                return null;
+            }
 
             logger.debug('IkonApiProvider: Normalization complete', {
                 resortId,
@@ -72,7 +107,8 @@ export class IkonApiProvider implements ISnowReportProvider {
                     totalLifts: totalLiftsCount,
                     percentOpen: totalLiftsCount > 0 ? Math.round((openLiftsCount / totalLiftsCount) * 100) : 0,
                     openParks: openParksCount,
-                    totalParks: totalParksCount
+                    totalParks: totalParksCount,
+                    details: parkDetails
                 },
                 lifts,
                 weather: {

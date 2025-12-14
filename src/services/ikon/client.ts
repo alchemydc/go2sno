@@ -31,7 +31,13 @@ export interface IkonResortResponse {
     // ...
 }
 
-export class IkonClient {
+export interface IIkonClient {
+    getResortStatus(resortId: number): Promise<{ lifts: IkonLift[]; trails: IkonTrail[]; terrainParks: IkonTrail[]; }>;
+    getResortSummary(resortId: number): Promise<any | null>;
+}
+
+export class IkonClient implements IIkonClient {
+
     private getApiKey(): string {
         const key = process.env.IKON_API_KEY;
         if (!key) {
@@ -124,6 +130,40 @@ export class IkonClient {
         } catch (error) {
             logger.error("IkonClient: Failed to get resort status", { resortId, error });
             throw error;
+        }
+    }
+
+    async getResortSummary(resortId: number): Promise<any | null> {
+        try {
+            // Re-using internal fetch but constructing full URL slightly differently or just using fetch directly since structure differs
+            // The Base URL is shared but endpoint differs
+            const token = this.getApiKey();
+            // Current base is /feed/v3.json ... we want /feed/v3/ikon.json
+            const summaryUrl = 'https://www.mtnpowder.com/feed/v3/ikon.json?bearer_token=' + token;
+
+            logger.debug("IkonClient: Fetching aggregate summary", { url: summaryUrl.replace(token, '[REDACTED]') });
+
+            const response = await fetch(summaryUrl, {
+                headers: {
+                    "User-Agent": USER_AGENT,
+                    "Accept": "application/json"
+                },
+                next: { revalidate: 300 } // longer cache for big file
+            });
+
+            if (!response.ok) {
+                logger.error("IkonClient: Summary fetch failed", { status: response.status });
+                return null;
+            }
+
+            const data = await response.json();
+            const resort = data.Resorts?.find((r: any) => r.Id === resortId);
+
+            return resort || null;
+
+        } catch (error) {
+            logger.error("IkonClient: Error fetching summary", { error });
+            return null;
         }
     }
 }

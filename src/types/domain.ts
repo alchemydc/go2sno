@@ -17,6 +17,7 @@ export interface ResortStatus {
         percentOpen: number;
         openParks: number;
         totalParks: number;
+        details?: Record<string, string>;
     };
     lifts: { // Detailed lift status
         [liftName: string]: 'open' | 'closed' | 'hold' | 'scheduled';

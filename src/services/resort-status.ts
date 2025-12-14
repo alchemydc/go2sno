@@ -63,7 +63,7 @@ function mapDomainToLegacy(status: DomainResortStatus): ResortStatusResult {
             parks: {
                 open: status.summary.openParks,
                 total: status.summary.totalParks,
-                details: {}
+                details: status.summary.details || {}
             }
         },
         weather: {
