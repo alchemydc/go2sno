@@ -49,4 +49,9 @@ export const IKON_RESORT_MAP: Record<string, IkonResortConfig> = {
     'appi': { ikonId: 252 },
     'zao': { ikonId: 253 },
     'myoko': { ikonId: 270 },
+
+    // New Zealand
+    'coronet': { ikonId: 179 },
+    'remarkables': { ikonId: 180 },
+    'mthutt': { ikonId: 181 },
 };

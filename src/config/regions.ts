@@ -253,6 +253,37 @@ export const REGIONS: Record<string, Region> = {
         },
         cameraKeywords: {}
     },
+    nz: {
+        id: 'nz',
+        name: 'New Zealand',
+        displayName: 'New Zealand',
+        center: [170.0, -44.0], // South Island
+        zoom: 6,
+        bounds: [[165.0, -47.0], [175.0, -40.0]],
+        locations: [
+            { id: 'queenstown', name: 'Queenstown', coordinates: '-45.0312,168.6626', type: 'gateway' },
+            { id: 'christchurch', name: 'Christchurch', coordinates: '-43.5321,172.6362', type: 'gateway' },
+            { id: 'wanaka', name: 'Wanaka', coordinates: '-44.7000,169.1500', type: 'town' },
+            { id: 'coronet', name: 'Coronet Peak', coordinates: '-44.9269,168.7361', type: 'resort' },
+            { id: 'remarkables', name: 'The Remarkables', coordinates: '-45.0533,168.8143', type: 'resort' },
+            { id: 'mthutt', name: 'Mt Hutt', coordinates: '-43.4667,171.5333', type: 'resort' },
+            { id: 'cardrona', name: 'Cardrona', coordinates: '-44.8739,168.9500', type: 'resort' },
+            { id: 'treblecone', name: 'Treble Cone', coordinates: '-44.6340,168.8960', type: 'resort' },
+        ],
+        resortIds: [
+            'coronet', 'remarkables', 'mthutt', 'cardrona', 'treblecone'
+        ],
+        services: {
+            weather: true,
+            roads: false,
+            avalanche: false,
+        },
+        providers: {
+            road: 'stub',
+            avalanche: 'stub',
+        },
+        cameraKeywords: {}
+    },
 };
 
 export const DEFAULT_REGION_ID = 'co';

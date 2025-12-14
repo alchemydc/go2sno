@@ -81,6 +81,13 @@ const RESORT_LOCATIONS = [
     { id: 'appi', name: 'Appi Kogen', totalLifts: 16, lat: 40.0017, lon: 140.9714 },
     { id: 'zao', name: 'Zao Onsen', totalLifts: 35, lat: 38.1705, lon: 140.4017 },
     { id: 'myoko', name: 'Myoko Suginohara', totalLifts: 5, lat: 36.8539, lon: 138.1558 },
+
+    // New Zealand
+    { id: 'coronet', name: 'Coronet Peak', totalLifts: 9, lat: -44.9269, lon: 168.7361 },
+    { id: 'remarkables', name: 'The Remarkables', totalLifts: 8, lat: -45.0533, lon: 168.8143 },
+    { id: 'mthutt', name: 'Mt Hutt', totalLifts: 5, lat: -43.4667, lon: 171.5333 },
+    { id: 'cardrona', name: 'Cardrona', totalLifts: 8, lat: -44.8739, lon: 168.9500 },
+    { id: 'treblecone', name: 'Treble Cone', totalLifts: 3, lat: -44.6340, lon: 168.8960 },
 ];
 
 export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => {

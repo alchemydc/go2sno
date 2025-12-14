@@ -1,6 +1,9 @@
 # bugs to fix
 - [ ] weather card in Dashboard.tsx is blue, whether theme is light or dark.  make styling consistent with other cards.
 - [ ] routeplanner shows "dry" conditions on map, which clutters the map and is not useful information
+- [ ] weather API does not properly support japan region (errors)
+- [ ] weather API does not properly support NZ region (errors)
+
 
 # features to add
 - multi-region support
