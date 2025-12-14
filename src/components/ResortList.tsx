@@ -56,7 +56,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
             // Fetch in parallel
             const promises = initialResorts.map(async (resort) => {
                 try {
-                    const res = await fetch(`/api/resort-status/${resort.id}`);
+                    const res = await fetch(`/api/v1/resorts/${resort.id}/status`);
                     if (!res.ok) return null;
                     const data = await res.json();
                     return { id: resort.id, data };

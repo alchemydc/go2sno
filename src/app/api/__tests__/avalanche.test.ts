@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GET } from '../avalanche/route';
+import { GET } from '../v1/avalanche/route';
 import { NextResponse } from 'next/server';
 
 // Mock the entire caic module before importing
@@ -34,48 +34,12 @@ describe('/api/avalanche', () => {
         await GET(request);
 
         expect(NextResponse.json).toHaveBeenCalledWith(
-            { error: 'Destination is required' },
+            { error: 'Destination required' },
             { status: 400 }
         );
     });
 
-    it('should return forecast data for valid destination', async () => {
-        const mockForecast = {
-            type: 'avalancheforecast',
-            areaId: 'test-area-id',
-            issueDateTime: '2025-12-05T10:00:00Z',
-            dangerRatings: {
-                days: [{
-                    alp: 'Considerable',
-                    tln: 'Moderate',
-                    btl: 'Low'
-                }]
-            },
-            avalancheSummary: {
-                days: [{
-                    content: 'Test avalanche summary'
-                }]
-            }
-        };
-
-        mockGetForecastByZoneSlug.mockResolvedValue(mockForecast);
-
-        const request = new Request('http://localhost/api/avalanche?destination=frisco');
-
-        await GET(request);
-
-        expect(NextResponse.json).toHaveBeenCalledWith(
-            expect.objectContaining({
-                zoneId: 'test-area-id',
-                zoneName: expect.any(String),
-                dangerRating: 3, // Considerable
-                dangerRatingDescription: 'Considerable',
-                summary: 'Test avalanche summary',
-                issueDate: '2025-12-05T10:00:00Z',
-                url: expect.stringContaining('avalanche.state.co.us')
-            })
-        );
-    });
+    // ...
 
     it('should return 404 if no forecast is found', async () => {
         mockGetForecastByZoneSlug.mockResolvedValue(null);
@@ -85,7 +49,7 @@ describe('/api/avalanche', () => {
         await GET(request);
 
         expect(NextResponse.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('No forecast found') }),
+            { error: 'Not found' },
             { status: 404 }
         );
     });
@@ -98,7 +62,7 @@ describe('/api/avalanche', () => {
         await GET(request);
 
         expect(NextResponse.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: 'Failed to fetch forecast' }),
+            { error: 'Internal Server Error' },
             { status: 500 }
         );
     });
@@ -106,15 +70,29 @@ describe('/api/avalanche', () => {
     it('should map destination to correct zone slug', async () => {
         mockGetForecastByZoneSlug.mockResolvedValue({
             type: 'avalancheforecast',
-            areaId: 'test',
-            issueDateTime: '2025-12-05',
-            dangerRatings: { days: [{ alp: 'Low', tln: 'Low', btl: 'Low' }] },
-            avalancheSummary: { days: [{ content: 'Test' }] }
+            areaId: 'test-area-id',
+            zoneName: 'Test Zone',
+            issueDateTime: '2025-12-05T10:00:00Z',
+            dangerRatings: { days: [{ alp: 'Considerable', tln: 'Moderate', btl: 'Low' }] },
+            avalancheSummary: { days: [{ content: 'Test avalanche summary' }] },
+            url: 'https://avalanche.state.co.us/forecasts/backcountry-avalanche/test-area-id'
         });
 
         const request = new Request('http://localhost/api/avalanche?destination=aspen');
         await GET(request);
 
         expect(mockGetForecastByZoneSlug).toHaveBeenCalledWith('aspen', expect.any(String));
+        expect(NextResponse.json).toHaveBeenCalledWith(
+            {
+                zoneId: 'test-area-id',
+                zoneName: 'Aspen',
+                dangerRating: 3, // Considerable
+                dangerRatingDisplay: 'Considerable',
+                summary: 'Test avalanche summary',
+                issueDate: '2025-12-05T10:00:00Z',
+                url: 'https://avalanche.state.co.us/forecasts/backcountry-avalanche/aspen',
+                provider: 'caic'
+            }
+        );
     });
 });

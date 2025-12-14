@@ -85,7 +85,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
                 if (!originCoords || !destCoords) return;
 
-                const response = await fetch(`/api/route?origin=${originCoords}&destination=${destCoords}`);
+                const response = await fetch(`/api/v1/route?origin=${originCoords}&destination=${destCoords}`);
                 const data = await response.json();
 
                 if (data.travelTimeInSeconds) {

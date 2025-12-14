@@ -27,15 +27,15 @@ describe('weather service', () => {
                 }
             };
 
-            global.fetch = vi.fn()
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: async () => mockPointsData
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: async () => ({
+                    temperature: 32,
+                    shortForecast: 'Partly Cloudy',
+                    windSpeed: '10 mph',
+                    icon: 'https://example.com/icon.png'
                 })
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: async () => mockForecastData
-                });
+            });
 
             const result = await getWeather(39.5, -106.0);
 

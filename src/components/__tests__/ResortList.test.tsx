@@ -28,7 +28,7 @@ describe('ResortList', () => {
     beforeEach(() => {
         vi.resetAllMocks();
         global.fetch = vi.fn((url) => {
-            if (typeof url === 'string' && url.includes('/api/resort-status/breck')) {
+            if (typeof url === 'string' && url.includes('/api/v1/resorts/breck/status')) {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve({

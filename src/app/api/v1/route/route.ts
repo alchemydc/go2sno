@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { logger } from '../../../utils/logger';
+import { logger } from '../../../../utils/logger';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    // TODO: input validation
     const origin = searchParams.get('origin');
     const destination = searchParams.get('destination');
 
@@ -17,9 +16,11 @@ export async function GET(request: Request) {
     }
 
     try {
-        const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
-        logger.debug('Fetching route from TomTom:', { url: url.replace(apiKey, '***') }); // Redact API key
+        // Redact key in logs
+        const redactedUrl = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=***&traffic=true`;
+        logger.debug('Fetching route from TomTom:', { url: redactedUrl });
 
+        const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -37,7 +38,6 @@ export async function GET(request: Request) {
             const route = data.routes[0];
             const summary = route.summary;
             const points = route.legs[0].points;
-
             const coordinates = points.map((point: any) => [point.longitude, point.latitude]);
 
             return NextResponse.json({

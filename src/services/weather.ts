@@ -9,22 +9,9 @@ export interface WeatherForecast {
 
 export const getWeather = async (lat: number, lon: number): Promise<WeatherForecast> => {
     try {
-        // 1. Get grid points
-        const pointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-        const pointsData = await pointsRes.json();
-        const forecastUrl = pointsData.properties.forecast;
-
-        // 2. Get forecast
-        const forecastRes = await fetch(forecastUrl);
-        const forecastData = await forecastRes.json();
-        const current = forecastData.properties.periods[0];
-
-        return {
-            temperature: current.temperature,
-            shortForecast: current.shortForecast,
-            windSpeed: current.windSpeed,
-            icon: current.icon,
-        };
+        const res = await fetch(`/api/v1/weather?lat=${lat}&lon=${lon}`);
+        if (!res.ok) throw new Error('Failed to fetch weather');
+        return await res.json();
     } catch (error) {
         logger.error('Error fetching weather:', error);
         return {

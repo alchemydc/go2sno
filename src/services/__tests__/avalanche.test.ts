@@ -12,7 +12,7 @@ describe('avalanche service', () => {
                 zoneId: 'test-zone',
                 zoneName: 'Test Zone',
                 dangerRating: 3,
-                dangerRatingDescription: 'Considerable',
+                dangerRatingDisplay: 'Considerable',
                 summary: 'Test summary',
                 issueDate: '2025-12-05',
                 url: 'https://example.com'
@@ -26,7 +26,7 @@ describe('avalanche service', () => {
             const result = await getAvalancheForecast('frisco');
 
             expect(result).toEqual(mockForecast);
-            expect(global.fetch).toHaveBeenCalledWith('/api/avalanche?destination=frisco');
+            expect(global.fetch).toHaveBeenCalledWith('/api/v1/avalanche?region=co&destination=frisco');
         });
 
         it('should return null on API error', async () => {
