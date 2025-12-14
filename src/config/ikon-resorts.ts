@@ -38,4 +38,15 @@ export const IKON_RESORT_MAP: Record<string, IkonResortConfig> = {
     'revelstoke': { ikonId: 77 },
     'sunpeaks': { ikonId: 171 },
     'panorama': { ikonId: 170 },
+
+    // Japan
+    'annupuri': { ikonId: 84 },
+    'hirafu': { ikonId: 85 },
+    'hanazono': { ikonId: 86 },
+    'village': { ikonId: 87 },
+    'furano': { ikonId: 251 },
+    'lottearai': { ikonId: 169 },
+    'appi': { ikonId: 252 },
+    'zao': { ikonId: 253 },
+    'myoko': { ikonId: 270 },
 };

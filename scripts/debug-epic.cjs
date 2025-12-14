@@ -24,16 +24,15 @@ https.get(url, options, (res) => {
             const parsed = JSON.parse(data);
             console.log(`Found ${parsed.length} resorts.`);
 
-            const targets = ['stevens', 'whistler', 'blackcomb'];
+            const targets = ['hakuba', 'rusutsu', 'japan', 'niseko'];
 
             parsed.forEach(r => {
                 const name = r.name || r.title || r.resortName || 'Unknown';
                 const id = r.id || r.resortId;
 
-                console.log(`${name}: ${id}`);
-                // if (targets.some(t => name.toLowerCase().includes(t))) {
-                //    console.log(`MATCH: ${name} (ID: ${id})`);
-                // }
+                if (targets.some(t => name.toLowerCase().includes(t))) {
+                    console.log(`MATCH: ${name} (ID: ${id})`);
+                }
             });
         } catch (e) {
             console.error('Error parsing JSON:', e);

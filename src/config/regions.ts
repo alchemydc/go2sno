@@ -214,6 +214,45 @@ export const REGIONS: Record<string, Region> = {
             'canyon': 5
         }
     },
+    japan: {
+        id: 'japan',
+        name: 'Japan',
+        displayName: 'Japan',
+        center: [139.0, 38.0], // Sea of Japan / Central Honshu
+        zoom: 6,
+        bounds: [[130.0, 31.0], [146.0, 46.0]],
+        locations: [
+            { id: 'tokyo', name: 'Tokyo', coordinates: '35.6762,139.6503', type: 'gateway' },
+            { id: 'sapporo', name: 'Sapporo', coordinates: '43.0618,141.3545', type: 'gateway' },
+            { id: 'niseko', name: 'Niseko', coordinates: '42.8048,140.6874', type: 'town' },
+            { id: 'nagano', name: 'Nagano', coordinates: '36.6486,138.1942', type: 'town' },
+            { id: 'annupuri', name: 'Niseko Annupuri', coordinates: '42.8465,140.6558', type: 'resort' },
+            { id: 'hirafu', name: 'Niseko Grand Hirafu', coordinates: '42.8622,140.7042', type: 'resort' },
+            { id: 'hanazono', name: 'Niseko Hanazono', coordinates: '42.8711,140.7180', type: 'resort' },
+            { id: 'village', name: 'Niseko Village', coordinates: '42.8533,140.6782', type: 'resort' },
+            { id: 'rusutsu', name: 'Rusutsu', coordinates: '42.7533,140.9056', type: 'resort' },
+            { id: 'furano', name: 'Furano', coordinates: '43.3421,142.3832', type: 'resort' },
+            { id: 'hakuba', name: 'Hakuba Valley', coordinates: '36.6982,137.8619', type: 'resort' },
+            { id: 'lottearai', name: 'Lotte Arai', coordinates: '36.9997,138.1814', type: 'resort' },
+            { id: 'appi', name: 'Appi Kogen', coordinates: '40.0017,140.9714', type: 'resort' },
+            { id: 'zao', name: 'Zao Onsen', coordinates: '38.1705,140.4017', type: 'resort' },
+            { id: 'myoko', name: 'Myoko Suginohara', coordinates: '36.8539,138.1558', type: 'resort' },
+        ],
+        resortIds: [
+            'annupuri', 'hirafu', 'hanazono', 'village', 'rusutsu', 'furano',
+            'hakuba', 'lottearai', 'appi', 'zao', 'myoko'
+        ],
+        services: {
+            weather: true,
+            roads: false,
+            avalanche: false,
+        },
+        providers: {
+            road: 'stub',
+            avalanche: 'stub',
+        },
+        cameraKeywords: {}
+    },
 };
 
 export const DEFAULT_REGION_ID = 'co';

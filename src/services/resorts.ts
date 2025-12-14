@@ -66,6 +66,21 @@ const RESORT_LOCATIONS = [
     { id: 'revelstoke', name: 'Revelstoke', totalLifts: 7, lat: 50.9585, lon: -118.1633 },
     { id: 'red', name: 'RED Mountain', totalLifts: 8, lat: 49.1026, lon: -117.8188 },
     { id: 'panorama', name: 'Panorama', totalLifts: 10, lat: 50.4856, lon: -116.1425 },
+
+    // Japan
+    // Niseko United
+    { id: 'annupuri', name: 'Niseko Annupuri', totalLifts: 6, lat: 42.8465, lon: 140.6558 },
+    { id: 'hirafu', name: 'Niseko Grand Hirafu', totalLifts: 14, lat: 42.8622, lon: 140.7042 },
+    { id: 'hanazono', name: 'Niseko Hanazono', totalLifts: 3, lat: 42.8711, lon: 140.7180 },
+    { id: 'village', name: 'Niseko Village', totalLifts: 8, lat: 42.8533, lon: 140.6782 },
+
+    { id: 'rusutsu', name: 'Rusutsu', totalLifts: 18, lat: 42.7533, lon: 140.9056 },
+    { id: 'furano', name: 'Furano', totalLifts: 9, lat: 43.3421, lon: 142.3832 },
+    { id: 'hakuba', name: 'Hakuba Valley', totalLifts: 135, lat: 36.6982, lon: 137.8619 }, // Aggregated
+    { id: 'lottearai', name: 'Lotte Arai', totalLifts: 5, lat: 36.9997, lon: 138.1814 },
+    { id: 'appi', name: 'Appi Kogen', totalLifts: 16, lat: 40.0017, lon: 140.9714 },
+    { id: 'zao', name: 'Zao Onsen', totalLifts: 35, lat: 38.1705, lon: 140.4017 },
+    { id: 'myoko', name: 'Myoko Suginohara', totalLifts: 5, lat: 36.8539, lon: 138.1558 },
 ];
 
 export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => {
