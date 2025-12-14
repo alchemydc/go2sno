@@ -6,7 +6,7 @@ export interface IkonResortConfig {
 export const IKON_RESORT_MAP: Record<string, IkonResortConfig> = {
     'winterpark': { ikonId: 5 },
     'steamboat': { ikonId: 6 },
-    'eldora': { ikonId: 13 },
+    'eldora': { ikonId: 56 },
     'copper': { ikonId: 55 },
     // Aspen generic mapped to Aspen Mountain for MVP
     'aspen': { ikonId: 52 },
