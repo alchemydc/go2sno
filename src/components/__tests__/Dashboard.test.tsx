@@ -112,7 +112,7 @@ describe('Dashboard', () => {
         render(<Dashboard />);
 
         await waitFor(() => {
-            expect(screen.getByText('go2sno')).toBeInTheDocument();
+            expect(screen.getByText(/play in the snow/i)).toBeInTheDocument();
             expect(screen.getByTestId('route-planner')).toBeInTheDocument();
         });
     });
@@ -165,7 +165,7 @@ describe('Dashboard', () => {
 
         // Wait for initial render
         await waitFor(() => {
-            expect(screen.getByText('go2sno')).toBeInTheDocument();
+            expect(screen.getByText(/play in the snow/i)).toBeInTheDocument();
         });
 
         // Assert calls did NOT happen yet
