@@ -88,6 +88,27 @@ const RESORT_LOCATIONS = [
     { id: 'mthutt', name: 'Mt Hutt', totalLifts: 5, lat: -43.4667, lon: 171.5333 },
     { id: 'cardrona', name: 'Cardrona', totalLifts: 8, lat: -44.8739, lon: 168.9500 },
     { id: 'treblecone', name: 'Treble Cone', totalLifts: 3, lat: -44.6340, lon: 168.8960 },
+
+    // US East
+    // New England
+    { id: 'stowe', name: 'Stowe', totalLifts: 12, lat: 44.5298, lon: -72.7858 },
+    { id: 'okemo', name: 'Okemo', totalLifts: 20, lat: 43.4014, lon: -72.7167 },
+    { id: 'mtsnow', name: 'Mount Snow', totalLifts: 19, lat: 42.9598, lon: -72.9223 },
+    { id: 'killington', name: 'Killington', totalLifts: 22, lat: 43.6256, lon: -72.7972 },
+    { id: 'sugarbush', name: 'Sugarbush', totalLifts: 16, lat: 44.1352, lon: -72.9281 },
+    { id: 'sundayriver', name: 'Sunday River', totalLifts: 18, lat: 44.4738, lon: -70.8574 },
+    { id: 'sugarloaf', name: 'Sugarloaf', totalLifts: 15, lat: 45.0315, lon: -70.3132 },
+    { id: 'loon', name: 'Loon Mountain', totalLifts: 14, lat: 44.0360, lon: -71.6212 },
+    { id: 'stratton', name: 'Stratton', totalLifts: 14, lat: 43.1114, lon: -72.9038 },
+    { id: 'jaypeak', name: 'Jay Peak', totalLifts: 9, lat: 44.9242, lon: -72.5257 },
+    // Mid-Atlantic
+    { id: 'hunter', name: 'Hunter Mountain', totalLifts: 15, lat: 42.2023, lon: -74.2290 },
+    { id: 'windham', name: 'Windham', totalLifts: 11, lat: 42.2883, lon: -74.2557 },
+    { id: 'whiteface', name: 'Whiteface', totalLifts: 11, lat: 44.3659, lon: -73.9026 },
+    { id: 'snowshoe', name: 'Snowshoe', totalLifts: 14, lat: 38.4093, lon: -79.9939 },
+    { id: 'blue', name: 'Blue Mountain', totalLifts: 16, lat: 40.8223, lon: -75.5133 },
+    { id: 'camelback', name: 'Camelback', totalLifts: 16, lat: 41.0514, lon: -75.3553 },
+    { id: 'sevensprings', name: 'Seven Springs', totalLifts: 10, lat: 40.0232, lon: -79.2990 },
 ];
 
 export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => {

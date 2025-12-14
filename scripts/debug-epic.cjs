@@ -24,7 +24,7 @@ https.get(url, options, (res) => {
             const parsed = JSON.parse(data);
             console.log(`Found ${parsed.length} resorts.`);
 
-            const targets = ['hakuba', 'rusutsu', 'japan', 'niseko'];
+            const targets = ['stowe', 'okemo', 'snow', 'hunter', 'attitash', 'wildcat', 'sunapee', 'crotched', 'liberty', 'roundtop', 'whitetail', 'seven'];
 
             parsed.forEach(r => {
                 const name = r.name || r.title || r.resortName || 'Unknown';

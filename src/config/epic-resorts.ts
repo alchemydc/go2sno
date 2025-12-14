@@ -52,5 +52,27 @@ export const EPIC_RESORT_MAP: Record<string, EpicResortConfig> = {
     'hakuba': {
         epicId: 'hakuba', // Placeholder/Partner
         parkNames: []
+    },
+
+    // US East
+    'stowe': {
+        epicId: '18',
+        parkNames: []
+    },
+    'okemo': {
+        epicId: '13',
+        parkNames: []
+    },
+    'mtsnow': {
+        epicId: '21',
+        parkNames: []
+    },
+    'hunter': {
+        epicId: '20',
+        parkNames: []
+    },
+    'sevensprings': {
+        epicId: '39',
+        parkNames: []
     }
 };

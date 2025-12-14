@@ -54,4 +54,16 @@ export const IKON_RESORT_MAP: Record<string, IkonResortConfig> = {
     'coronet': { ikonId: 179 },
     'remarkables': { ikonId: 180 },
     'mthutt': { ikonId: 181 },
+
+    // US East
+    'killington': { ikonId: 69 },
+    'sugarbush': { ikonId: 70 },
+    'sundayriver': { ikonId: 73 },
+    'sugarloaf': { ikonId: 72 },
+    'loon': { ikonId: 71 },
+    'stratton': { ikonId: 1 },
+    'windham': { ikonId: 97 },
+    'snowshoe': { ikonId: 2 },
+    'blue': { ikonId: 176 },
+    'camelback': { ikonId: 177 },
 };

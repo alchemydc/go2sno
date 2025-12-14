@@ -284,6 +284,51 @@ export const REGIONS: Record<string, Region> = {
         },
         cameraKeywords: {}
     },
+    'us-east': {
+        id: 'us-east',
+        name: 'East Coast',
+        displayName: 'East Coast',
+        center: [-74.0, 42.0], // Mid-point (NY/New England)
+        zoom: 6,
+        bounds: [[-80.0, 38.0], [-68.0, 46.0]],
+        locations: [
+            { id: 'nyc', name: 'New York City', coordinates: '40.7128,-74.0060', type: 'gateway' },
+            { id: 'boston', name: 'Boston', coordinates: '42.3601,-71.0589', type: 'gateway' },
+            { id: 'burlington', name: 'Burlington', coordinates: '44.4759,-73.2121', type: 'town' },
+            { id: 'stowe', name: 'Stowe', coordinates: '44.5298,-72.7858', type: 'resort' },
+            { id: 'okemo', name: 'Okemo', coordinates: '43.4014,-72.7167', type: 'resort' },
+            { id: 'mtsnow', name: 'Mount Snow', coordinates: '42.9598,-72.9223', type: 'resort' },
+            { id: 'killington', name: 'Killington', coordinates: '43.6256,-72.7972', type: 'resort' },
+            { id: 'sugarbush', name: 'Sugarbush', coordinates: '44.1352,-72.9281', type: 'resort' },
+            { id: 'sundayriver', name: 'Sunday River', coordinates: '44.4738,-70.8574', type: 'resort' },
+            { id: 'sugarloaf', name: 'Sugarloaf', coordinates: '45.0315,-70.3132', type: 'resort' },
+            { id: 'loon', name: 'Loon Mountain', coordinates: '44.0360,-71.6212', type: 'resort' },
+            { id: 'stratton', name: 'Stratton', coordinates: '43.1114,-72.9038', type: 'resort' },
+            { id: 'jaypeak', name: 'Jay Peak', coordinates: '44.9242,-72.5257', type: 'resort' },
+            { id: 'hunter', name: 'Hunter Mountain', coordinates: '42.2023,-74.2290', type: 'resort' },
+            { id: 'windham', name: 'Windham', coordinates: '42.2883,-74.2557', type: 'resort' },
+            { id: 'whiteface', name: 'Whiteface', coordinates: '44.3659,-73.9026', type: 'resort' },
+            { id: 'snowshoe', name: 'Snowshoe', coordinates: '38.4093,-79.9939', type: 'resort' },
+            { id: 'blue', name: 'Blue Mountain', coordinates: '40.8223,-75.5133', type: 'resort' },
+            { id: 'camelback', name: 'Camelback', coordinates: '41.0514,-75.3553', type: 'resort' },
+            { id: 'sevensprings', name: 'Seven Springs', coordinates: '40.0232,-79.2990', type: 'resort' },
+        ],
+        resortIds: [
+            'stowe', 'okemo', 'mtsnow', 'killington', 'sugarbush', 'sundayriver',
+            'sugarloaf', 'loon', 'stratton', 'jaypeak', 'hunter', 'windham',
+            'whiteface', 'snowshoe', 'blue', 'camelback', 'sevensprings'
+        ],
+        services: {
+            weather: true,
+            roads: false,
+            avalanche: false,
+        },
+        providers: {
+            road: 'stub',
+            avalanche: 'stub',
+        },
+        cameraKeywords: {}
+    },
 };
 
 export const DEFAULT_REGION_ID = 'co';
