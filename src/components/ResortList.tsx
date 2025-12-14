@@ -199,7 +199,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold', justifyContent: 'flex-end' }}>
                                         <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
-                                        {resort.snow24h}"
+                                        {Math.round(resort.snow24h)}"
                                     </div>
                                     {resort.temp !== undefined && (
                                         <div style={{ fontSize: '0.8rem', color: '#666' }}>

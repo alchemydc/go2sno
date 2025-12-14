@@ -554,7 +554,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     </div>
                     <div>
                         <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>
-                            {snowForecast !== undefined ? `${snowForecast}"` : '-'}
+                            {snowForecast !== undefined ? `${Math.round(snowForecast)}"` : '-'}
                         </div>
                         <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>New Snow</div>
                     </div>
