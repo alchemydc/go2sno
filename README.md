@@ -4,17 +4,21 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 
 ## Features
 
-*   **Multi-Region Support:** Seamlessly switch between **Colorado**, **Utah**, and **Tahoe**.
+*   **Multi-Region Support:** Seamlessly switch between **Colorado**, **Utah**, **Tahoe**, **Pacific Northwest**, **Japan**, **New Zealand**, and **East Coast**.
 *   **Trip Planner:** Interactive map with routing to and from major snow destinations (Gateways to Resorts).
 *   **Real-time Travel Alerts:** Integration with CDOT (COtrip) and TomTom for active road incidents and travel times.
 *   **Road Cameras:** Live HLS streaming video feeds from CDOT and Caltrans.
-    *   *Smart Prioritization:*  Cameras are dynamically ranked by relevance to your route, prioritizing those near active incidents, adverse weather, or key regional landmarks (e.g., Eisenhower Tunnel in CO, Parleys Canyon in UT).
+    *   *Smart Prioritization:*  Cameras are dynamically ranked by relevance to your route, prioritizing those near active incidents, adverse weather, or key regional landmarks.
 *   **Weather:** Real-time weather data and forecasts (NWS API).
 *   **Resort Status:** Unified view of lift & trail status across different ownership groups (Epic, Ikon, Independent).
     *   *Data Sources:* Direct API integration (Epic Mix), Web Scraping (Micrawl fallback), and Weather-based inference.
-    *   *Metrics:* Open lifts, terrain park status, and 24h snow totals.
+    *   *Metrics:* Open lifts, terrain park status, and 24h snow totals (rounded for clarity).
     *   *Sorting:* Sort by Snow Report or **Pass Affiliation** (Epic, Ikon, Independent).
-*   **Avalanche Forecasts:**  Regional avalanche danger ratings from CAIC (Colorado). Stubs in place for UAC (Utah) and SAC (Sierra).
+*   **Avalanche Forecasts:**  Regional avalanche danger ratings from CAIC (Colorado). Stubs in place for other regions.
+
+## Known Issues
+
+*   **Routing (TomTom):** Route calculation to Stevens Pass (PNW) may occasionally fail due to API data issues in that specific area.
 
 ## Architecture
 
@@ -23,12 +27,12 @@ This project uses a modern, extensible architecture designed to support multiple
 ### Core Concepts
 
 1.  **Region Configuration (`src/config/regions.ts`)**: 
-    - The app is driven by a configuration file that defines regions (e.g., `co`, `ut`, `tahoe`). 
+    - The app is driven by a configuration file that defines regions (e.g., `co`, `ut`, `tahoe`, `pnw`, `japan`, `nz`, `us-east`). 
     - Each region defines its map bounds, resorts, active service providers (e.g., which Road API to use), and **prioritization keywords** for road cameras.
 
 2.  **Service Factory (`src/services/factory.ts`)**: 
     - A central factory instantiates the correct services based on the selected region.
-    - **Road Service:** Returns `IRoadService` (e.g., `CdotRoadService` for CO, `CaltransRoadService` for Tahoe, `UdotRoadService` stub for Utah).
+    - **Road Service:** Returns `IRoadService` (e.g., `CdotRoadService` for CO, `CaltransRoadService` for Tahoe, `StubRoadService` for others).
     - **Avalanche Service:** Returns `IAvalancheService` (e.g., `CaicAvalancheService` for CO).
 
 3.  **Unified Resort Data (`src/services/snow-report`)**:
