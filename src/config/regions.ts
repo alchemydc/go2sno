@@ -31,6 +31,10 @@ export interface Region {
         road: 'cdot' | 'caltrans' | 'udot' | 'stub';
         avalanche: 'caic' | 'uac' | 'sac' | 'stub';
     };
+
+    // Priority keywords for camera sorting in this region
+    // key: lowercase keyword, value: score bonus
+    cameraKeywords?: Record<string, number>;
 }
 
 export const REGIONS: Record<string, Region> = {
@@ -75,6 +79,16 @@ export const REGIONS: Record<string, Region> = {
             road: 'cdot',
             avalanche: 'caic',
         },
+        cameraKeywords: {
+            'eisenhower': 20,
+            'tunnel': 20,
+            'johnson': 20,
+            'fremont': 10,
+            'vail': 10,
+            'berthoud': 10,
+            'loveland': 5,
+            'summit': 5
+        }
     },
     ut: {
         id: 'ut',
@@ -102,6 +116,12 @@ export const REGIONS: Record<string, Region> = {
             road: 'udot', // Will use stub for now
             avalanche: 'uac', // Will use stub for now
         },
+        cameraKeywords: {
+            'parley': 20,
+            'cottonwood': 20,
+            'canyon': 10,
+            'summit': 10
+        }
     },
     tahoe: {
         id: 'tahoe',
@@ -139,6 +159,11 @@ export const REGIONS: Record<string, Region> = {
             road: 'caltrans',
             avalanche: 'sac', // Will use stub for now
         },
+        cameraKeywords: {
+            'donner': 20,
+            'summit': 10,
+            'echo': 10,
+        }
     },
 };
 

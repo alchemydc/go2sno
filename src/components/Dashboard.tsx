@@ -167,7 +167,7 @@ export const Dashboard: React.FC = () => {
                 routeSegmentCount: routeGeoJSON.geometry.coordinates.length
             });
 
-            const prioritizedCameras = prioritizeCameras(filteredCameras, filteredIncidents, filteredConditions);
+            const prioritizedCameras = prioritizeCameras(filteredCameras, filteredIncidents, filteredConditions, selectedRegion?.id);
 
             logger.debug('Camera stats: Prioritized', {
                 count: prioritizedCameras.length,

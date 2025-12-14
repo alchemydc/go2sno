@@ -12,6 +12,7 @@ describe('prioritizeCameras', () => {
                 lon: -105.0
             },
             url: 'url1',
+            type: 'image',
             regionId: 'co'
         },
         {
@@ -22,6 +23,7 @@ describe('prioritizeCameras', () => {
                 lon: -106.0
             },
             url: 'url2',
+            type: 'image',
             regionId: 'co'
         },
         {
@@ -32,6 +34,7 @@ describe('prioritizeCameras', () => {
                 lon: -107.0
             },
             url: 'url3',
+            type: 'image',
             regionId: 'co'
         }
     ];
@@ -52,7 +55,6 @@ describe('prioritizeCameras', () => {
 
     const mockConditions: RoadCondition[] = [
         {
-            id: 'cond1',
             routeName: 'I-70',
             status: 'Icy',
             description: 'Icy conditions',
@@ -84,5 +86,45 @@ describe('prioritizeCameras', () => {
     it('should handle empty lists gracefully', () => {
         const result = prioritizeCameras([], [], []);
         expect(result).toHaveLength(0);
+    });
+
+    it('should prioritize cameras with relevant keywords when no incidents exist', () => {
+        const cameras = [
+            { ...mockCameras[0], id: 'c1', name: 'Random Road Cam' },
+            { ...mockCameras[0], id: 'c2', name: 'Fremont Pass Cam', location: { lat: 40, lon: -105 } }, // +10 (CO specific)
+            { ...mockCameras[0], id: 'c3', name: 'Eisenhower Tunnel Cam', location: { lat: 40, lon: -105 } } // +20 (CO specific + Generic Tunnel)
+        ];
+
+        // Test with CO region
+        const result = prioritizeCameras(cameras, [], [], 'co');
+
+        expect(result[0].id).toBe('c3'); // Tunnel (+20)
+        expect(result[1].id).toBe('c2'); // Pass (+10)
+        expect(result[2].id).toBe('c1'); // Random (0)
+    });
+
+    it('should deduplicate cameras with the same name', () => {
+        const cameras = [
+            { ...mockCameras[0], id: 'c1', name: 'Duplicate Cam' },
+            { ...mockCameras[0], id: 'c2', name: 'Duplicate Cam' },
+            { ...mockCameras[0], id: 'c3', name: 'Unique Cam' }
+        ];
+
+        const result = prioritizeCameras(cameras, [], [], 'co');
+
+        expect(result).toHaveLength(2);
+        expect(result.map(c => c.name)).toContain('Duplicate Cam');
+        expect(result.map(c => c.name)).toContain('Unique Cam');
+    });
+
+    it('should use region specific keywords', () => {
+        const cameras = [
+            { ...mockCameras[0], id: 'ut1', name: 'Cottonwood Canyon' }, // UT specific (+20)
+            { ...mockCameras[0], id: 'ut2', name: 'Random Cam' }
+        ];
+
+        // Use UT region
+        const result = prioritizeCameras(cameras, [], [], 'ut');
+        expect(result[0].id).toBe('ut1');
     });
 });
