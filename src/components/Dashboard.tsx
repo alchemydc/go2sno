@@ -103,7 +103,7 @@ export const Dashboard: React.FC = () => {
 
     // Fetch alerts and cameras when destination changes (and region is selected)
     useEffect(() => {
-        if (!selectedRegion || !destination) {
+        if (!selectedRegion || !destination || !from) {
             // cleared in the region change effect or initial state
             setLoadingAlerts(false);
             return;
@@ -132,7 +132,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         fetchData();
-    }, [selectedRegion?.id, destination]);
+    }, [selectedRegion?.id, destination, from]);
 
     // Filter alerts and cameras when route or data changes
     useEffect(() => {

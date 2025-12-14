@@ -197,10 +197,23 @@ describe('Dashboard', () => {
         // Click on Vail
         fireEvent.click(screen.getByText('Vail'));
 
-        // Verify that the route planner update logic is triggered
-        // We can check if getIncidents/getConditions is called, as that happens when destination is set
+        // Verify that resorts are fetched but road data is NOT, because Origin is not set in this interaction
+        // Note: The Dashboard keeps 'from' state separate. Clicking a resort sets 'destination'.
+        // Unless 'from' is defaulted, road data won't fetch.
+        // In the mock above, RoutePlanner's props are called. But we need to verify Dashboard's reaction.
+        // Dashboard passes `setDestination` to ResortList via `onSelect`.
+
+        // This test case relies on the interaction setting destination. 
+        // Our updated logic REQUIRES 'from' to trigger road data.
+        // So we expect mockGetIncidents NOT to be called if 'from' is empty (which it is by default in Dashboard).
+
+        // Let's verify it is NOT called initially
         await waitFor(() => {
-            expect(mockGetIncidents).toHaveBeenCalled();
+            // Wait for React to process the state change
+            // We can check something else, or just wait a bit. 
+            // But actually, we can check that it hasn't been called.
         });
+
+        expect(mockGetIncidents).not.toHaveBeenCalled();
     });
 });
