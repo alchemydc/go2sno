@@ -212,102 +212,102 @@ export const Dashboard: React.FC = () => {
 
             <div className="dashboard-grid">
 
-                {/* Route Planner */}
-                <div className="area-planner">
-                    <RoutePlanner
-                        locations={locations}
-                        locationOptions={selectedRegion?.locations || []}
-                        destination={destination}
-                        onDestinationChange={setDestination}
-                        from={from}
-                        onFromChange={setFrom}
-                        onRouteUpdate={setRouteGeoJSON}
-                        incidents={incidents}
-                        conditions={conditions}
-                        regions={regions}
-                        selectedRegionId={selectedRegion?.id || ''}
-                        onRegionChange={setRegionId}
-                        snowForecast={resorts.find(r => r.id === destination)?.snow24h}
-                    />
-                </div>
-
-                {/* Cameras */}
-                <div className="area-cameras">
-                    {destination && (
-                        <div className="card" style={{ marginBottom: 0, height: '100%' }}>
-                            <CameraGrid cameras={cameras.slice(0, 4)} loading={loadingAlerts} />
-
-                            {!loadingAlerts && cameras.length > 4 && (
-                                <div style={{ marginTop: '1rem', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '0.75rem' }}>
-                                    <button
-                                        onClick={() => setShowAllCameras(true)}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            padding: 0,
-                                            cursor: 'pointer',
-                                            color: 'var(--color-primary)',
-                                            textDecoration: 'none',
-                                            fontWeight: '500',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            fontSize: 'inherit',
-                                            fontFamily: 'inherit'
-                                        }}
-                                    >
-                                        View All {cameras.length} Cameras on Route →
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Weather */}
-                <div className="area-weather">
-                    {destination && (
-                        <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                                <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
-                                <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
-                            </div>
-                            {weather ? (
-                                <div>
-                                    <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
-                                    <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
-                                    <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
-                                </div>
-                            ) : (
-                                <div>Loading weather...</div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Avalanche Report */}
-                <div className="area-avalanche">
-                    {destination && (
-                        <AvalancheReportCard destination={destination} />
-                    )}
-                </div>
-
-                {/* Travel Alerts (Incidents & Conditions) */}
-                <div className="area-alerts">
-                    {destination && (incidents.length > 0 || conditions.length > 0) && (
-                        <IncidentsCard
+                {/* Left Column */}
+                <div className="dashboard-col-left">
+                    <div className="area-planner">
+                        <RoutePlanner
+                            locations={locations}
+                            locationOptions={selectedRegion?.locations || []}
+                            destination={destination}
+                            onDestinationChange={setDestination}
+                            from={from}
+                            onFromChange={setFrom}
+                            onRouteUpdate={setRouteGeoJSON}
                             incidents={incidents}
                             conditions={conditions}
-                            loading={loadingAlerts}
+                            regions={regions}
+                            selectedRegionId={selectedRegion?.id || ''}
+                            onRegionChange={setRegionId}
+                            snowForecast={resorts.find(r => r.id === destination)?.snow24h}
                         />
-                    )}
+                    </div>
+
+                    <div className="area-cameras">
+                        {destination && (
+                            <div className="card" style={{ marginBottom: 0, height: '100%' }}>
+                                <CameraGrid cameras={cameras.slice(0, 4)} loading={loadingAlerts} />
+
+                                {!loadingAlerts && cameras.length > 4 && (
+                                    <div style={{ marginTop: '1rem', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '0.75rem' }}>
+                                        <button
+                                            onClick={() => setShowAllCameras(true)}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                padding: 0,
+                                                cursor: 'pointer',
+                                                color: 'var(--color-primary)',
+                                                textDecoration: 'none',
+                                                fontWeight: '500',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                fontSize: 'inherit',
+                                                fontFamily: 'inherit'
+                                            }}
+                                        >
+                                            View All {cameras.length} Cameras on Route →
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Resort Reports */}
-                <div className="area-resorts">
-                    <ResortList
-                        resorts={resorts}
-                        onSelect={setDestination}
-                    />
+                {/* Right Column */}
+                <div className="dashboard-col-right">
+                    <div className="area-resorts">
+                        <ResortList
+                            resorts={resorts}
+                            onSelect={setDestination}
+                        />
+                    </div>
+
+                    <div className="area-weather">
+                        {destination && (
+                            <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
+                                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
+                                </div>
+                                {weather ? (
+                                    <div>
+                                        <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
+                                        <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
+                                        <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
+                                    </div>
+                                ) : (
+                                    <div>Loading weather...</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="area-avalanche">
+                        {destination && (
+                            <AvalancheReportCard destination={destination} />
+                        )}
+                    </div>
+
+                    <div className="area-alerts">
+                        {destination && (incidents.length > 0 || conditions.length > 0) && (
+                            <IncidentsCard
+                                incidents={incidents}
+                                conditions={conditions}
+                                loading={loadingAlerts}
+                            />
+                        )}
+                    </div>
                 </div>
 
             </div>

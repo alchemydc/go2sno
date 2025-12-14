@@ -100,6 +100,12 @@ body {
   gap: 1.5rem;
 }
 
+/* Mobile: Use display contents to flatten the structure and allow ordering */
+.dashboard-col-left,
+.dashboard-col-right {
+  display: contents;
+}
+
 /* Mobile Order */
 .area-planner {
   order: 1;
@@ -128,40 +134,32 @@ body {
 /* Desktop Layout */
 @media (min-width: 768px) {
   .dashboard-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+    flex-direction: row;
     align-items: start;
-    /* Prevent stretching */
   }
 
-  .area-planner {
-    grid-column: 1;
-    grid-row: 1;
+  .dashboard-col-left {
+    display: flex;
+    flex-direction: column;
+    flex: 2;
+    gap: 1.5rem;
   }
 
+  .dashboard-col-right {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 1.5rem;
+  }
+
+  /* Reset order for desktop so they stack naturally in columns */
+  .area-planner,
+  .area-resorts,
+  .area-weather,
+  .area-avalanche,
+  .area-alerts,
   .area-cameras {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .area-weather {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .area-avalanche {
-    grid-column: 2;
-    grid-row: 3;
-  }
-
-  .area-alerts {
-    grid-column: 2;
-    grid-row: 4;
-  }
-
-  .area-resorts {
-    grid-column: 2;
-    grid-row: 1;
+    order: 0;
   }
 }
 
