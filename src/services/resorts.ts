@@ -51,6 +51,21 @@ const RESORT_LOCATIONS = [
     { id: 'northstar', name: 'Northstar', totalLifts: 20, lat: 39.2730, lon: -120.1192 },
     { id: 'kirkwood', name: 'Kirkwood', totalLifts: 15, lat: 38.6810, lon: -120.0659 },
     { id: 'mammoth', name: 'Mammoth Mountain', totalLifts: 25, lat: 37.6485, lon: -118.9721 },
+
+    // PNW
+    { id: 'crystal', name: 'Crystal Mountain', totalLifts: 11, lat: 46.9282, lon: -121.5045 },
+    { id: 'snoqualmie', name: 'The Summit at Snoqualmie', totalLifts: 24, lat: 47.4239, lon: -121.4132 },
+    { id: 'stevens', name: 'Stevens Pass', totalLifts: 10, lat: 47.7441, lon: -121.0890 },
+    { id: 'bachelor', name: 'Mt. Bachelor', totalLifts: 12, lat: 43.9774, lon: -121.6885 },
+    { id: 'mthood', name: 'Mt. Hood Meadows', totalLifts: 12, lat: 45.3344, lon: -121.6663 },
+    { id: 'whitepass', name: 'White Pass', totalLifts: 8, lat: 46.6375, lon: -121.3912 },
+    { id: 'missionridge', name: 'Mission Ridge', totalLifts: 6, lat: 47.2917, lon: -120.3980 },
+    { id: 'whistler', name: 'Whistler Blackcomb', totalLifts: 37, lat: 50.1163, lon: -122.9574 },
+    { id: 'cypress', name: 'Cypress Mountain', totalLifts: 9, lat: 49.3959, lon: -123.2045 },
+    { id: 'sunpeaks', name: 'Sun Peaks', totalLifts: 13, lat: 50.8845, lon: -119.8864 },
+    { id: 'revelstoke', name: 'Revelstoke', totalLifts: 7, lat: 50.9585, lon: -118.1633 },
+    { id: 'red', name: 'RED Mountain', totalLifts: 8, lat: 49.1026, lon: -117.8188 },
+    { id: 'panorama', name: 'Panorama', totalLifts: 10, lat: 50.4856, lon: -116.1425 },
 ];
 
 export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => {

@@ -40,5 +40,13 @@ export const EPIC_RESORT_MAP: Record<string, EpicResortConfig> = {
     'crestedbutte': {
         epicId: '5',
         parkNames: []
+    },
+    'whistler': {
+        epicId: '19',
+        parkNames: []
+    },
+    'stevens': {
+        epicId: '17',
+        parkNames: []
     }
 };

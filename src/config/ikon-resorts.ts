@@ -27,5 +27,15 @@ export const IKON_RESORT_MAP: Record<string, IkonResortConfig> = {
     // Wait, recent resort list had "Palisades Tahoe" but didn't explicitly list Alpine as a separate top-level resort with ID?
     // Let's assume 61 covers it or it's the main one.
     'alpinemeadows': { ikonId: 61 },
-    'mammoth': { ikonId: 60 }
+    'mammoth': { ikonId: 60 },
+
+    // PNW
+    'crystal': { ikonId: 80 },
+    'snoqualmie': { ikonId: 79 },
+    'bachelor': { ikonId: 96 },
+    'cypress': { ikonId: 81 },
+    'red': { ikonId: 98 },
+    'revelstoke': { ikonId: 77 },
+    'sunpeaks': { ikonId: 171 },
+    'panorama': { ikonId: 170 },
 };

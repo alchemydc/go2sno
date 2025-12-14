@@ -165,6 +165,55 @@ export const REGIONS: Record<string, Region> = {
             'echo': 10,
         }
     },
+    pnw: {
+        id: 'pnw',
+        name: 'Pacific Northwest',
+        displayName: 'PNW',
+        center: [-121.5, 47.0], // Cascades area
+        zoom: 7,
+        bounds: [[-124.0, 43.5], [-117.0, 51.5]],
+        locations: [
+            { id: 'seattle', name: 'Seattle', coordinates: '47.6062,-122.3321', type: 'gateway' },
+            { id: 'portland', name: 'Portland', coordinates: '45.5152,-122.6784', type: 'gateway' },
+            { id: 'vancouver', name: 'Vancouver', coordinates: '49.2827,-123.1207', type: 'gateway' },
+            { id: 'crystal', name: 'Crystal Mountain', coordinates: '46.9282,-121.5045', type: 'resort' },
+            { id: 'snoqualmie', name: 'The Summit at Snoqualmie', coordinates: '47.4239,-121.4132', type: 'resort' },
+            { id: 'stevens', name: 'Stevens Pass', coordinates: '47.7441,-121.0890', type: 'resort' },
+            { id: 'bachelor', name: 'Mt. Bachelor', coordinates: '43.9774,-121.6885', type: 'resort' },
+            { id: 'mthood', name: 'Mt. Hood Meadows', coordinates: '45.3344,-121.6663', type: 'resort' },
+            { id: 'whitepass', name: 'White Pass', coordinates: '46.6375,-121.3912', type: 'resort' },
+            { id: 'missionridge', name: 'Mission Ridge', coordinates: '47.2917,-120.3980', type: 'resort' },
+            { id: 'whistler', name: 'Whistler Blackcomb', coordinates: '50.1163,-122.9574', type: 'resort' },
+            { id: 'cypress', name: 'Cypress Mountain', coordinates: '49.3959,-123.2045', type: 'resort' },
+            { id: 'sunpeaks', name: 'Sun Peaks', coordinates: '50.8845,-119.8864', type: 'resort' },
+            { id: 'revelstoke', name: 'Revelstoke', coordinates: '50.9585,-118.1633', type: 'resort' },
+            { id: 'red', name: 'RED Mountain', coordinates: '49.1026,-117.8188', type: 'resort' },
+            { id: 'panorama', name: 'Panorama', coordinates: '50.4856,-116.1425', type: 'resort' },
+        ],
+        resortIds: [
+            'crystal', 'snoqualmie', 'stevens', 'bachelor', 'mthood', 'whitepass',
+            'missionridge', 'whistler', 'cypress', 'sunpeaks', 'revelstoke', 'red', 'panorama'
+        ],
+        services: {
+            weather: true,
+            roads: false, // Future: WSDOT/ODOT
+            avalanche: false, // Future: NWAC/Avalanche Canada
+        },
+        providers: {
+            road: 'stub',
+            avalanche: 'stub',
+        },
+        cameraKeywords: {
+            'snoqualmie': 20,
+            'stevens': 20,
+            'blewett': 20,
+            'white': 10,
+            'hood': 10,
+            'crystal': 10,
+            'baker': 10,
+            'canyon': 5
+        }
+    },
 };
 
 export const DEFAULT_REGION_ID = 'co';
