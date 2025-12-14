@@ -4,6 +4,7 @@ import { Snowflake, Mountain } from 'lucide-react';
 import { useRegion } from '../context/RegionContext';
 import { LiftStatusOverlay } from './LiftStatusOverlay';
 import { TerrainParkOverlay } from './TerrainParkOverlay';
+import { EpicLogo, IkonLogo } from './PassLogos';
 
 interface ResortListProps {
     resorts: Resort[];
@@ -208,11 +209,11 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                     )}
                                     {resort.affiliation && (
                                         <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'flex-end' }}>
-                                            <img
-                                                src={resort.affiliation === 'epic' ? '/epic_pass_logo.png' : '/ikon_pass_logo.png'}
-                                                alt={`${resort.affiliation} pass`}
-                                                style={{ height: '16px', opacity: 0.8 }}
-                                            />
+                                            {resort.affiliation === 'epic' ? (
+                                                <EpicLogo height={18} />
+                                            ) : (
+                                                <IkonLogo height={18} />
+                                            )}
                                         </div>
                                     )}
                                 </div>
