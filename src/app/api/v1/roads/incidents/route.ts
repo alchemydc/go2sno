@@ -33,19 +33,14 @@ async function fetchCdotIncidents(): Promise<Incident[]> {
 
         return (data.features || []).map((f: any) => ({
             id: f.id,
-            type: f.properties.type,
-            description: f.properties.travelerInformationMessage,
+            type: f.properties.type || 'Unknown',
+            // Map 'travelerInformationMessage' to description, defaulting to type if empty (e.g. MEXL Open)
+            description: f.properties.travelerInformationMessage || f.properties.type || 'No description available',
             startTime: f.properties.startTime,
             location: {
-                lat: f.properties.geometry?.coordinates?.[1] || 0, // Fallback if internal helper needed for MultiPoint
-                // Actually COtrip incidents usually Point?
-                // Let's implement robust Point extraction like in cdot.ts if possible or assume Point for now.
-                // COtrip GeoJSON usually has Point.
+                lat: f.properties.geometry?.coordinates?.[1] || 0,
                 lon: f.properties.geometry?.coordinates?.[0] || 0
             },
-            // Wait, f.geometry is outside properties usually?
-            // GeoJSON: feature.geometry, feature.properties.
-            // Correcting below.
             routeName: f.properties.routeName,
             regionId: 'co',
             provider: 'cdot'

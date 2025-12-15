@@ -190,8 +190,9 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         coordinates: [incident.location.lon, incident.location.lat]
                     },
                     properties: {
-                        type: incident.type,
-                        description: incident.description
+                        type: incident.type || 'Incident',
+                        // Ensure description is never undefined/null
+                        description: incident.description || incident.type || 'No details available'
                     }
                 }))
             };
