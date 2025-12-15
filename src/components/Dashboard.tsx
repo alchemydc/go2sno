@@ -138,6 +138,13 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         if (loadingAlerts) return;
 
+        logger.debug('Dashboard: Filtering alerts', {
+            allIncidents: allIncidents.length,
+            allConditions: allConditions.length,
+            allCameras: allCameras.length,
+            hasRoute: !!routeGeoJSON
+        });
+
         if (routeGeoJSON && routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates) {
             const routeLine = lineString(routeGeoJSON.geometry.coordinates);
             const MAX_DISTANCE_MILES = 1; // range beyond which incidents and conditions will be ignored for a given route
@@ -150,9 +157,22 @@ export const Dashboard: React.FC = () => {
             });
 
             const filteredConditions = allConditions.filter(condition => {
+                // Filter out "dry" conditions as they are not actionable alerts
+                const description = (condition.description || '').toLowerCase();
+                const status = (condition.status || '').toLowerCase();
+
+                if (description.includes('dry') || status.includes('dry')) {
+                    return false;
+                }
+
                 const pt = point([condition.location.lon, condition.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= MAX_DISTANCE_MILES;
+            });
+
+            logger.debug('Dashboard: Route filtered stats', {
+                incidents: filteredIncidents.length,
+                conditions: filteredConditions.length
             });
 
             const filteredCameras = allCameras.filter(camera => {

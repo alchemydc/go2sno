@@ -87,20 +87,26 @@ async function fetchCdotConditions(): Promise<RoadCondition[]> {
         if (!res.ok) throw new Error(res.statusText);
         const data = await res.json();
 
-        return (data.features || []).map((f: any) => ({
-            id: f.id || `cdot-${Math.random()}`,
-            type: 'RoadCondition', // CDOT might have types like 'Closure', 'Restriction'?
-            // CDOT features: f.properties.type, f.properties.conditionDescription
-            location: {
-                lat: f.properties.primaryLatitude,
-                lon: f.properties.primaryLongitude
-            },
-            routeName: f.properties.routeName,
-            status: f.properties.currentConditions?.[0]?.conditionDescription || 'Unknown',
-            description: f.properties.currentConditions?.[0]?.conditionDescription || '',
-            regionId: 'co',
-            provider: 'cdot'
-        }));
+        return (data.features || [])
+            .map((f: any) => ({
+                id: f.id || `cdot-${Math.random()}`,
+                type: 'RoadCondition',
+                location: {
+                    lat: f.properties.primaryLatitude,
+                    lon: f.properties.primaryLongitude
+                },
+                routeName: f.properties.routeName,
+                status: f.properties.currentConditions?.[0]?.conditionDescription || 'Unknown',
+                description: f.properties.currentConditions?.[0]?.conditionDescription || '',
+                regionId: 'co',
+                provider: 'cdot'
+            }))
+            .filter((c: RoadCondition) => {
+                // Filter out bad data from CDOT API
+                const desc = (c.description || '').toLowerCase();
+                if (desc.includes('forecast text included')) return false;
+                return true;
+            });
     } catch (err) {
         logger.error('Failed to fetch CDOT conditions', err);
         return [];
