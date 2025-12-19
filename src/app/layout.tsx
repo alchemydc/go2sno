@@ -1,6 +1,7 @@
 import '../index.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Metadata } from 'next';
+import { Github } from 'lucide-react';
 
 export const metadata: Metadata = {
     title: 'go2sno',
@@ -26,6 +27,10 @@ export default function RootLayout({
                 }}>
                     <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
                         Weather data by Open-Meteo.com
+                    </a>
+                    {' | '}
+                    <a href="https://github.com/alchemydc/go2sno/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', verticalAlign: 'text-bottom' }} aria-label="GitHub Repository">
+                        <Github size={14} />
                     </a>
                 </footer>
             </body>
