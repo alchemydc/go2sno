@@ -39,13 +39,19 @@ interface CaltransResponse {
 }
 
 const CALTRANS_DISTRICTS = ['3', '9', '10'];
+const SOCAL_DISTRICTS = ['5', '7', '8', '9', '11', '12'];
 
-async function fetchCaltransConditions(districts: string[]): Promise<RoadCondition[]> {
+async function fetchCaltransConditions(districts: string[], regionId: string = 'tahoe'): Promise<RoadCondition[]> {
+    logger.debug('Fetching Caltrans conditions', { districts, regionId });
     const promises = districts.map(async (d) => {
         const url = `https://cwwp2.dot.ca.gov/data/d${d}/cc/ccStatusD${d.padStart(2, '0')}.json`;
+        logger.debug(`Fetching Caltrans district url: ${url}`);
         try {
             const res = await fetch(url);
-            if (!res.ok) return [];
+            if (!res.ok) {
+                logger.warn(`Failed to fetch Caltrans district ${d}: ${res.status} ${res.statusText}`);
+                return [];
+            }
             const json: CaltransResponse = await res.json();
             return json.data
                 .filter(item => item.cc.inService === 'true')
@@ -59,9 +65,10 @@ async function fetchCaltransConditions(districts: string[]): Promise<RoadConditi
                     routeName: `${cc.location.route} ${cc.location.locationName}`,
                     status: cc.statusData.status,
                     description: cc.statusData.statusDescription,
-                    regionId: 'tahoe',
+                    regionId: regionId,
                     provider: 'caltrans'
-                }));
+                }))
+                .filter(c => !isNaN(c.location.lat) && !isNaN(c.location.lon));
         } catch (err) {
             logger.error(`Failed to fetch Caltrans district ${d}`, err);
             return [];
@@ -69,7 +76,9 @@ async function fetchCaltransConditions(districts: string[]): Promise<RoadConditi
     });
 
     const results = await Promise.all(promises);
-    return results.flat();
+    const flattened = results.flat();
+    logger.debug(`Fetched ${flattened.length} Caltrans conditions for districts ${districts.join(',')}`);
+    return flattened;
 }
 
 // --- CDOT Logic (Colorado) ---
@@ -124,8 +133,14 @@ export async function GET(request: Request) {
 
         if (region === 'tahoe' || region === 'canv') {
             const districts = districtsParam ? districtsParam.split(',') : CALTRANS_DISTRICTS;
-            conditions = await fetchCaltransConditions(districts);
+            logger.info('Fetching conditions for Tahoe', { districts });
+            conditions = await fetchCaltransConditions(districts, 'tahoe');
+        } else if (region === 'socal') {
+            const districts = districtsParam ? districtsParam.split(',') : SOCAL_DISTRICTS;
+            logger.info('Fetching conditions for SoCal', { districts });
+            conditions = await fetchCaltransConditions(districts, 'socal');
         } else if (region === 'co') {
+            logger.info('Fetching conditions for CO');
             conditions = await fetchCdotConditions();
         }
 

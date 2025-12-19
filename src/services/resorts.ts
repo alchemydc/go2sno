@@ -52,6 +52,10 @@ const RESORT_LOCATIONS = [
     { id: 'kirkwood', name: 'Kirkwood', totalLifts: 15, lat: 38.6810, lon: -120.0659 },
     { id: 'mammoth', name: 'Mammoth Mountain', totalLifts: 25, lat: 37.6485, lon: -118.9721 },
 
+    // SoCal
+    { id: 'bigbear', name: 'Big Bear Mountain', totalLifts: 19, lat: 34.2267, lon: -116.8602 },
+    { id: 'baldy', name: 'Mt Baldy', totalLifts: 4, lat: 34.2708, lon: -117.6214 },
+
     // PNW
     { id: 'crystal', name: 'Crystal Mountain', totalLifts: 11, lat: 46.9282, lon: -121.5045 },
     { id: 'snoqualmie', name: 'The Summit at Snoqualmie', totalLifts: 24, lat: 47.4239, lon: -121.4132 },

@@ -29,7 +29,7 @@ export function getRoadService(regionId: string): IRoadService {
         case 'cdot':
             return new CdotRoadService();
         case 'caltrans':
-            return new CaltransRoadService();
+            return new CaltransRoadService(regionId);
         case 'udot':
             return new UdotRoadService();
         case 'stub':

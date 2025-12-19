@@ -3,24 +3,30 @@ import { IRoadService } from './interfaces';
 import { Camera, Incident, RoadCondition } from '../types/domain';
 
 export class CaltransRoadService implements IRoadService {
+    private regionId: string;
+
+    constructor(regionId: string = 'tahoe') {
+        this.regionId = regionId;
+    }
+
     async getIncidents(): Promise<Incident[]> {
-        logger.debug('CaltransRoadService: fetching incidents');
+        logger.debug('CaltransRoadService: fetching incidents', { regionId: this.regionId });
         try {
-            const res = await fetch('/api/v1/roads/incidents?region=tahoe');
+            const res = await fetch(`/api/v1/roads/incidents?region=${this.regionId}`);
             if (!res.ok) throw new Error(`Status ${res.status}`);
             const incidents = await res.json();
-            logger.debug(`CaltransRoadService: found ${incidents.length} incidents`);
+            logger.debug(`CaltransRoadService: found ${incidents.length} incidents for region ${this.regionId}`);
             return incidents;
         } catch (error) {
-            logger.error('CaltransRoadService: Error fetching incidents', { error });
+            logger.error('CaltransRoadService: Error fetching incidents', { error, regionId: this.regionId });
             return [];
         }
     }
 
     async getConditions(districts?: string[]): Promise<RoadCondition[]> {
-        logger.debug('CaltransRoadService: fetching road conditions');
+        logger.debug('CaltransRoadService: fetching road conditions', { regionId: this.regionId, districts });
         const url = new URL('/api/v1/roads/conditions', window.location.origin);
-        url.searchParams.set('region', 'tahoe');
+        url.searchParams.set('region', this.regionId);
         if (districts && districts.length > 0) {
             url.searchParams.set('districts', districts.join(','));
         }
@@ -29,31 +35,27 @@ export class CaltransRoadService implements IRoadService {
             const res = await fetch(url.toString());
             if (!res.ok) throw new Error(`Status ${res.status}`);
             const conditions = await res.json();
-            logger.debug(`CaltransRoadService: found ${conditions.length} conditions`);
+            logger.debug(`CaltransRoadService: found ${conditions.length} conditions for region ${this.regionId}`);
             return conditions;
         } catch (error) {
-            logger.error('CaltransRoadService: Error fetching conditions', { error });
+            logger.error('CaltransRoadService: Error fetching conditions', { error, regionId: this.regionId });
             return [];
         }
     }
 
     async getCameras(filterRoute?: string): Promise<Camera[]> {
-        logger.debug('CaltransRoadService: fetching cameras', { filterRoute });
+        logger.debug('CaltransRoadService: fetching cameras', { filterRoute, regionId: this.regionId });
         const url = new URL('/api/v1/roads/cameras', window.location.origin);
-        url.searchParams.set('region', 'tahoe');
-        // Default districts logic is now in backend if not provided? 
-        // Or we pass them here. Backend defaults to 3,9,10.
-        // Legacy code forced 3,9,10. Let's rely on backend defaults 
-        // unless explicit 'districts' arg is added to getCameras signature (it isn't in interface).
+        url.searchParams.set('region', this.regionId);
 
         try {
             const res = await fetch(url.toString());
             if (!res.ok) throw new Error(`Status ${res.status}`);
             const cameras = await res.json();
-            logger.debug(`CaltransRoadService: found ${cameras.length} cameras`);
+            logger.debug(`CaltransRoadService: found ${cameras.length} cameras for region ${this.regionId}`);
             return cameras;
         } catch (error) {
-            logger.error('CaltransRoadService: Error fetching cameras', { error });
+            logger.error('CaltransRoadService: Error fetching cameras', { error, regionId: this.regionId });
             return [];
         }
     }

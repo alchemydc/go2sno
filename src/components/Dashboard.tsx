@@ -151,6 +151,9 @@ export const Dashboard: React.FC = () => {
             const CAMERA_MAX_DISTANCE_MILES = 1; // range beyond which cameras will be ignored for a given route
 
             const filteredIncidents = allIncidents.filter(incident => {
+                if (typeof incident.location.lon !== 'number' || typeof incident.location.lat !== 'number' || isNaN(incident.location.lon) || isNaN(incident.location.lat)) {
+                    return false;
+                }
                 const pt = point([incident.location.lon, incident.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= MAX_DISTANCE_MILES;
@@ -165,6 +168,10 @@ export const Dashboard: React.FC = () => {
                     return false;
                 }
 
+                if (typeof condition.location.lon !== 'number' || typeof condition.location.lat !== 'number' || isNaN(condition.location.lon) || isNaN(condition.location.lat)) {
+                    return false;
+                }
+
                 const pt = point([condition.location.lon, condition.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= MAX_DISTANCE_MILES;
@@ -176,7 +183,7 @@ export const Dashboard: React.FC = () => {
             });
 
             const filteredCameras = allCameras.filter(camera => {
-                if (!camera.location?.lat || !camera.location?.lon) return false;
+                if (!camera.location?.lat || !camera.location?.lon || isNaN(camera.location.lat) || isNaN(camera.location.lon)) return false;
                 const pt = point([camera.location.lon, camera.location.lat]);
                 const distance = pointToLineDistance(pt, routeLine, { units: 'miles' });
                 return distance <= CAMERA_MAX_DISTANCE_MILES;

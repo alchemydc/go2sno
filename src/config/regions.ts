@@ -165,6 +165,41 @@ export const REGIONS: Record<string, Region> = {
             'echo': 10,
         }
     },
+    socal: {
+        id: 'socal',
+        name: 'Southern California',
+        displayName: 'SoCal',
+        center: [-117.9, 34.0], // LA/San Bernardino area
+        zoom: 8,
+        bounds: [[-120.5, 32.5], [-116.0, 35.5]],
+        locations: [
+            { id: 'la', name: 'Los Angeles', coordinates: '34.0522,-118.2437', type: 'gateway' },
+            { id: 'ventura', name: 'Ventura', coordinates: '34.2746,-119.2290', type: 'gateway' },
+            { id: 'santabarbara', name: 'Santa Barbara', coordinates: '34.4208,-119.6982', type: 'gateway' },
+            { id: 'santamonica', name: 'Santa Monica', coordinates: '34.0195,-118.4912', type: 'gateway' },
+            { id: 'hollywood', name: 'Hollywood', coordinates: '34.0928,-118.3287', type: 'gateway' },
+            { id: 'sandiego', name: 'San Diego', coordinates: '32.7157,-117.1611', type: 'gateway' },
+            { id: 'mammoth', name: 'Mammoth', coordinates: '37.6485,-118.9721', type: 'resort' },
+            { id: 'bigbear', name: 'Big Bear', coordinates: '34.2439,-116.9114', type: 'resort' },
+            { id: 'baldy', name: 'Mt Baldy', coordinates: '34.2708,-117.6214', type: 'resort' },
+        ],
+        resortIds: ['mammoth', 'bigbear', 'baldy'],
+        services: {
+            weather: true,
+            roads: true, // Caltrans
+            avalanche: false,
+        },
+        providers: {
+            road: 'caltrans',
+            avalanche: 'stub',
+        },
+        cameraKeywords: {
+            'cajon': 20,
+            'grapevine': 20,
+            'bear': 10,
+            'summit': 10
+        }
+    },
     pnw: {
         id: 'pnw',
         name: 'Pacific Northwest',

@@ -66,18 +66,22 @@ async function fetchCdotIncidents(): Promise<Incident[]> {
 
 // --- Caltrans Logic (Tahoe) ---
 // Parses KML from QuickMap
-async function fetchCaltransIncidents(): Promise<Incident[]> {
+async function fetchCaltransIncidents(regionId: string = 'tahoe'): Promise<Incident[]> {
     const url = 'https://quickmap.dot.ca.gov/data/chp-only.kml';
+    logger.debug(`Fetching Caltrans incidents from ${url} for region ${regionId}`);
     try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error(res.statusText);
+        if (!res.ok) {
+            logger.warn(`Failed to fetch Caltrans incidents: ${res.status}`);
+            throw new Error(res.statusText);
+        }
         const text = await res.text();
 
         const parser = new DOMParser();
         const kml = parser.parseFromString(text, 'text/xml');
         const geojson = toGeoJSON.kml(kml);
 
-        return geojson.features.map((f: any) => {
+        const incidents = geojson.features.map((f: any) => {
             let lat = 0, lon = 0;
             if (f.geometry?.type === 'Point') {
                 lon = f.geometry.coordinates[0];
@@ -102,10 +106,12 @@ async function fetchCaltransIncidents(): Promise<Incident[]> {
                 startTime: new Date().toISOString(), // No reliable time in KML props usually
                 location: { lat, lon },
                 routeName: f.properties.name || 'Unknown',
-                regionId: 'tahoe',
+                regionId: regionId,
                 provider: 'caltrans'
             };
         });
+        logger.debug(`Fetched ${incidents.length} Caltrans incidents`);
+        return incidents;
     } catch (err) {
         logger.error('Error fetching Caltrans incidents', err);
         return [];
@@ -120,9 +126,14 @@ export async function GET(request: Request) {
 
     try {
         if (region === 'co') {
+            logger.info('Fetching incidents for CO');
             incidents = await fetchCdotIncidents();
         } else if (region === 'tahoe' || region === 'canv') {
-            incidents = await fetchCaltransIncidents();
+            logger.info('Fetching incidents for Tahoe');
+            incidents = await fetchCaltransIncidents('tahoe');
+        } else if (region === 'socal') {
+            logger.info('Fetching incidents for SoCal');
+            incidents = await fetchCaltransIncidents('socal');
         }
 
         return NextResponse.json(incidents);

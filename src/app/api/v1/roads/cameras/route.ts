@@ -50,13 +50,19 @@ async function fetchCdotCameras(): Promise<Camera[]> {
 
 // --- Caltrans Logic ---
 const CALTRANS_DISTRICTS = ['3', '9', '10'];
+const SOCAL_DISTRICTS = ['5', '7', '8', '9', '11', '12'];
 
-async function fetchCaltransCameras(districts: string[]): Promise<Camera[]> {
+async function fetchCaltransCameras(districts: string[], regionId: string = 'tahoe'): Promise<Camera[]> {
+    logger.debug('Fetching Caltrans cameras', { districts, regionId });
     const promises = districts.map(async (d) => {
         const url = `https://cwwp2.dot.ca.gov/data/d${d}/cctv/cctvStatusD${d.padStart(2, '0')}.json`;
+        logger.debug(`Fetching Caltrans district cameras url: ${url}`);
         try {
             const res = await fetch(url);
-            if (!res.ok) return [];
+            if (!res.ok) {
+                logger.warn(`Failed to fetch Caltrans cameras for district ${d}: ${res.status}`);
+                return [];
+            }
             const json: any = await res.json();
             return json.data
                 .filter((item: any) => item.cctv.inService === 'true')
@@ -69,7 +75,7 @@ async function fetchCaltransCameras(districts: string[]): Promise<Camera[]> {
                         lat: parseFloat(cctv.location.latitude),
                         lon: parseFloat(cctv.location.longitude)
                     },
-                    regionId: 'tahoe',
+                    regionId: regionId,
                     provider: 'caltrans'
                 }));
         } catch (err) {
@@ -79,7 +85,9 @@ async function fetchCaltransCameras(districts: string[]): Promise<Camera[]> {
     });
 
     const results = await Promise.all(promises);
-    return results.flat();
+    const flattened = results.flat();
+    logger.debug(`Fetched ${flattened.length} Caltrans cameras for districts ${districts.join(',')}`);
+    return flattened;
 }
 
 export async function GET(request: Request) {
@@ -91,10 +99,16 @@ export async function GET(request: Request) {
 
     try {
         if (region === 'co') {
+            logger.info('Fetching cameras for CO');
             cameras = await fetchCdotCameras();
         } else if (region === 'tahoe' || region === 'canv') {
             const districts = districtsParam ? districtsParam.split(',') : CALTRANS_DISTRICTS;
-            cameras = await fetchCaltransCameras(districts);
+            logger.info('Fetching cameras for Tahoe', { districts });
+            cameras = await fetchCaltransCameras(districts, 'tahoe');
+        } else if (region === 'socal') {
+            const districts = districtsParam ? districtsParam.split(',') : SOCAL_DISTRICTS;
+            logger.info('Fetching cameras for SoCal', { districts });
+            cameras = await fetchCaltransCameras(districts, 'socal');
         }
 
         return NextResponse.json(cameras);
