@@ -146,10 +146,10 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 }}
                             >
                                 <div>
-                                    <h3 style={{ margin: '0 0 0.25rem 0' }}>{resort.name}</h3>
+                                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>{resort.name}</h3>
 
-                                    {/* Status Badges */}
-                                    <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    {/* Status Badges - Vertical Stack for Consistency */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
                                         {hasLifts && (
                                             <span
                                                 onClick={(e) => {
@@ -158,18 +158,22 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                                     setActiveOverlay('lifts');
                                                 }}
                                                 style={{
-                                                    backgroundColor: statusData.summary.open > 0 ? '#e6f4ea' : '#fce8e6',
-                                                    color: statusData.summary.open > 0 ? '#137333' : '#c5221f',
-                                                    padding: '2px 6px',
+                                                    backgroundColor: statusData.summary.open > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                                    color: statusData.summary.open > 0 ? '#10b981' : '#ef4444',
+                                                    padding: '4px 8px',
                                                     borderRadius: '4px',
-                                                    fontWeight: 'bold',
-                                                    display: 'flex',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.75rem',
+                                                    display: 'inline-flex',
                                                     alignItems: 'center',
                                                     gap: '4px',
-                                                    cursor: 'pointer'
+                                                    cursor: 'pointer',
+                                                    border: `1px solid ${statusData.summary.open > 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                                    transition: 'all 0.2s',
+                                                    width: 'fit-content'
                                                 }}>
                                                 {statusData.summary.open}/{statusData.summary.total} Lifts Open
-                                                <span style={{ fontSize: '0.7em' }}>ℹ️</span>
+                                                <span style={{ fontSize: '0.8em', opacity: 0.7 }}>ℹ️</span>
                                             </span>
                                         )}
                                         {hasParks && statusData?.summary.parks && (
@@ -180,18 +184,22 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                                     setActiveOverlay('parks');
                                                 }}
                                                 style={{
-                                                    backgroundColor: '#f1f3f4',
-                                                    color: '#3c4043',
-                                                    padding: '2px 6px',
+                                                    backgroundColor: 'rgba(243, 244, 246, 0.8)',
+                                                    color: '#374151',
+                                                    padding: '4px 8px',
                                                     borderRadius: '4px',
-                                                    fontWeight: 'bold',
-                                                    display: 'flex',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.75rem',
+                                                    display: 'inline-flex',
                                                     alignItems: 'center',
                                                     gap: '4px',
-                                                    cursor: 'pointer'
+                                                    cursor: 'pointer',
+                                                    border: '1px solid rgba(209, 213, 219, 0.5)',
+                                                    transition: 'all 0.2s',
+                                                    width: 'fit-content'
                                                 }}>
                                                 {statusData.summary.parks.open}/{statusData.summary.parks.total} Parks Open
-                                                <span style={{ fontSize: '0.7em' }}>ℹ️</span>
+                                                <span style={{ fontSize: '0.8em', opacity: 0.7 }}>ℹ️</span>
                                             </span>
                                         )}
                                     </div>
