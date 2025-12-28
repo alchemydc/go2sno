@@ -19,6 +19,7 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 ## Known Issues
 
 *   **Routing (TomTom):** Route calculation to Stevens Pass (PNW) may occasionally fail due to API data issues in that specific area.
+*   **Snow Data Discrepancy:** Open-Meteo provides **weather model estimates**, not actual measurements. Resort-reported snow (from Epic/Ikon APIs) represents physical snow stake measurements and is significantly more accurate. Large discrepancies (e.g., 12" reported vs 0.4" modeled) are expected for mountain environments where models struggle with orographic effects and microclimates. The comparison is intentionally shown to help identify potential over-reporting by resorts.
 
 ## Architecture
 

@@ -71,4 +71,50 @@ describe('EpicMixClient', () => {
 
         expect(result).toEqual(mockWeatherResponse.mainLocation);
     });
+
+    it('should fetch and parse daily stats snowfall data', async () => {
+        const mockDailyStats = {
+            dailyStats: {
+                hours: { open: '7:00 AM', close: '6:00 PM' },
+                lifts: { open: '14', total: '44' },
+                runs: { open: '18', total: '348' },
+                snowfall: '7in',
+                temp: { hi: { f: '22°F', c: '22°F' }, lo: { f: '12°F', c: '12°F' } }
+            }
+        };
+
+        (global.fetch as any).mockResolvedValue(createFetchResponse(mockDailyStats));
+
+        const result = await epicMixClient.getResortDailyStats('14');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/resorts/14/daily-stats'),
+            expect.anything()
+        );
+
+        expect(result.dailyStats.snowfall).toBe('7in');
+    });
+
+    it('should handle daily stats with zero snowfall', async () => {
+        const mockDailyStats = {
+            dailyStats: {
+                hours: { open: '7:00 AM', close: '6:00 PM' },
+                lifts: { open: '0', total: '44' },
+                runs: { open: '0', total: '348' },
+                snowfall: '0in',
+                temp: { hi: { f: '22°F', c: '22°F' }, lo: { f: '12°F', c: '12°F' } }
+            }
+        };
+
+        (global.fetch as any).mockResolvedValue(createFetchResponse(mockDailyStats));
+
+        const result = await epicMixClient.getResortDailyStats('14');
+        expect(result.dailyStats.snowfall).toBe('0in');
+    });
+
+    it('should handle daily stats API errors', async () => {
+        (global.fetch as any).mockResolvedValue(createFetchResponse({}, false, 401));
+
+        await expect(epicMixClient.getResortDailyStats('14')).rejects.toThrow('Epic Mix API error: 401');
+    });
 });

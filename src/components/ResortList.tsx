@@ -51,7 +51,12 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
         }
 
         const sorted = [...initialResorts].sort((a, b) => {
-            if (sortBy === 'snow') return b.snow24h - a.snow24h;
+            if (sortBy === 'snow') {
+                // Use actual status data snow values instead of initial resort snow24h
+                const snowA = resortStatuses[a.id]?.weather?.snow24h ?? a.snow24h;
+                const snowB = resortStatuses[b.id]?.weather?.snow24h ?? b.snow24h;
+                return snowB - snowA;
+            }
             if (sortBy === 'pass') {
                 const getScore = (r: Resort) => {
                     if (r.affiliation === 'ikon') return 3;
@@ -61,12 +66,15 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                 const scoreA = getScore(a);
                 const scoreB = getScore(b);
                 if (scoreA !== scoreB) return scoreB - scoreA;
-                return b.snow24h - a.snow24h;
+                // Secondary sort by actual snow data
+                const snowA = resortStatuses[a.id]?.weather?.snow24h ?? a.snow24h;
+                const snowB = resortStatuses[b.id]?.weather?.snow24h ?? b.snow24h;
+                return snowB - snowA;
             }
             return a.name.localeCompare(b.name);
         });
         setSortedResorts(sorted);
-    }, [initialResorts, sortBy]);
+    }, [initialResorts, sortBy, resortStatuses]); // Added resortStatuses dependency
 
     useEffect(() => {
         const fetchStatuses = async () => {
