@@ -1,37 +1,16 @@
 import { ISnowReportProvider } from '../types';
 import { ResortStatus } from '../../../types/domain';
 import { logger } from '../../../utils/logger';
-import { fetchResortWeather } from '../../open-meteo';
-import { getResorts } from '../../resorts';
+import { fetchResortWeather, getWeatherDescription } from '../../open-meteo';
+import { RESORT_LOCATION_MAP } from '../../resorts';
 
 export class OpenMeteoProvider implements ISnowReportProvider {
     name = 'open-meteo';
 
     async getStatus(resortId: string): Promise<ResortStatus | null> {
-        // We need lat/lon for the resort. 
-        // Ideally ResortStatusManager passes context, but for now we look it up.
-        // This is inefficient (fetches all resorts to find one), but acceptable for MVP refactor.
-        // Optimization: Cache resort locations map.
-
         try {
-            // Find resort in static list (checking all regions or just knowing it)
-            // A better approach: The Manager should probably provide the Resort entity or coords.
-            // For now, let's use the static list from resorts.ts.
-            const allResorts = await getResorts('co'); // Default to CO for lookup or fetch all?
-            // Actually getResorts filters by region. We need a global lookup.
-            // Let's rely on the definition in regions config or similar? 
-            // The `RESORT_LOCATIONS` in `src/services/resorts.ts` is not exported directly.
-
-            // Allow checking other regions if not found in CO
-            let resort = allResorts.find(r => r.id === resortId);
-            if (!resort) {
-                const tahoe = await getResorts('tahoe');
-                resort = tahoe.find(r => r.id === resortId);
-            }
-            if (!resort) {
-                const utah = await getResorts('ut');
-                resort = utah.find(r => r.id === resortId);
-            }
+            // Direct lookup from static map - no need to call getResorts()
+            const resort = RESORT_LOCATION_MAP.get(resortId);
 
             if (!resort) {
                 logger.warn('OpenMeteoProvider: Resort location not found', { resortId });
@@ -57,7 +36,8 @@ export class OpenMeteoProvider implements ISnowReportProvider {
                 weather: {
                     tempCurrent: localWeather.current.temperature_2m,
                     snow24h: localWeather.daily.snowfall_sum[0] || 0,
-                    weatherDesc: 'Partly Cloudy' // Placeholder or derived from code
+                    calculatedSnow24h: localWeather.daily.snowfall_sum[0] || 0,
+                    weatherDesc: getWeatherDescription(localWeather.current.weather_code)
                 },
                 source: 'open-meteo-fallback'
             };

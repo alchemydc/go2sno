@@ -53,6 +53,28 @@ type RawWeatherResponse = {
     mainLocation: EpicWeatherResponse;
 };
 
+export interface EpicDailyStatsResponse {
+    dailyStats: {
+        hours: {
+            open: string;
+            close: string;
+        };
+        lifts: {
+            open: string;
+            total: string;
+        };
+        runs: {
+            open: string;
+            total: string;
+        };
+        snowfall: string; // e.g. "7in" or "0in"
+        temp: {
+            hi: { f: string; c: string };
+            lo: { f: string; c: string };
+        };
+    };
+}
+
 export class EpicMixClient {
     private async fetch<T>(path: string): Promise<T> {
         const url = `${EPIC_API_BASE}${path}`;
@@ -130,6 +152,23 @@ export class EpicMixClient {
             return data.mainLocation;
         } catch (error) {
             logger.error("EpicMixClient: Failed to fetch resort weather", { resortId, error });
+            throw error;
+        }
+    }
+
+    async getResortDailyStats(resortId: string) {
+        try {
+            logger.debug("EpicMixClient: Fetching resort daily stats", { resortId });
+            const data = await this.fetch<EpicDailyStatsResponse>(`/resorts/${resortId}/daily-stats`);
+
+            logger.debug("EpicMixClient: Received daily stats", {
+                resortId,
+                snowfall: data.dailyStats?.snowfall
+            });
+
+            return data;
+        } catch (error) {
+            logger.error("EpicMixClient: Failed to fetch resort daily stats", { resortId, error });
             throw error;
         }
     }

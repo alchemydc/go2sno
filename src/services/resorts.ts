@@ -115,6 +115,11 @@ const RESORT_LOCATIONS = [
     { id: 'sevensprings', name: 'Seven Springs', totalLifts: 10, lat: 40.0232, lon: -79.2990 },
 ];
 
+// Export for use in other services
+export const RESORT_LOCATION_MAP = new Map(
+    RESORT_LOCATIONS.map(r => [r.id, r])
+);
+
 export const getResorts = async (regionId: string = 'co'): Promise<Resort[]> => {
     logger.debug('Getting resorts for region:', { regionId });
 

@@ -43,14 +43,31 @@ export class ResortStatusManager implements ISnowReportManager {
 
         // 3. Merge/Reconcile
         if (primaryStatus) {
-            // Augment primary with weather if primary lacks it or we want "actual" vs "reported"
-            // For MVP, we'll overwite weather with Meteo if available, or keep provider's if Meteo fails
+            // Preserve reported snow from primary provider
+            const reportedSnow24h = primaryStatus.weather.reportedSnow24h;
+            const calculatedSnow24h = weatherStatus?.weather?.snow24h;
+
+            // Merge weather data
             if (weatherStatus?.weather) {
                 primaryStatus.weather = {
-                    ...primaryStatus.weather,
-                    ...weatherStatus.weather
+                    ...weatherStatus.weather, // Start with Open-Meteo data
+                    ...primaryStatus.weather, // Override with provider data
+                    reportedSnow24h, // Explicitly preserve reported
+                    calculatedSnow24h, // Explicitly set calculated from Open-Meteo
+                    // Prioritize reported snow for display
+                    snow24h: reportedSnow24h !== undefined ? reportedSnow24h : (calculatedSnow24h || 0)
                 };
             }
+
+            // Verbose logging for debugging
+            logger.debug('ResortStatusManager: Snow data merged', {
+                resortId,
+                reportedSnow24h: primaryStatus.weather.reportedSnow24h,
+                calculatedSnow24h: primaryStatus.weather.calculatedSnow24h,
+                displaySnow24h: primaryStatus.weather.snow24h,
+                source: primaryStatus.source
+            });
+
             return primaryStatus;
         }
 

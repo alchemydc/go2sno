@@ -83,7 +83,8 @@ export class IkonApiProvider implements ISnowReportProvider {
                         lifts: {}, // No detailed list available
                         weather: {
                             tempCurrent: 0,
-                            snow24h: 0
+                            snow24h: 0, // Will be set by manager
+                            reportedSnow24h: summaryData.SnowLast24HoursIn || undefined
                         },
                         source: 'ikon-api-summary'
                     };
@@ -113,7 +114,8 @@ export class IkonApiProvider implements ISnowReportProvider {
                 lifts,
                 weather: {
                     tempCurrent: 0, // Filled by Weather Provider
-                    snow24h: 0 // Filled by Weather or separate call
+                    snow24h: 0, // Will be set by manager
+                    reportedSnow24h: await this.fetchSnowfall24h(config.ikonId)
                 },
                 source: 'ikon-api'
             };
@@ -121,6 +123,24 @@ export class IkonApiProvider implements ISnowReportProvider {
         } catch (error) {
             logger.error('IkonApiProvider: Failed to fetch status', { resortId, error });
             return null;
+        }
+    }
+
+    private async fetchSnowfall24h(ikonId: number): Promise<number | undefined> {
+        try {
+            const summaryData = await ikonClient.getResortSummary(ikonId);
+            if (summaryData && summaryData.SnowLast24HoursIn !== undefined) {
+                logger.debug('IkonApiProvider: Found reported snow', {
+                    ikonId,
+                    snowLast24h: summaryData.SnowLast24HoursIn
+                });
+                return summaryData.SnowLast24HoursIn;
+            }
+            logger.debug('IkonApiProvider: No snow data in summary', { ikonId });
+            return undefined;
+        } catch (error) {
+            logger.warn('IkonApiProvider: Failed to fetch summary for snow data', { ikonId, error });
+            return undefined;
         }
     }
 }

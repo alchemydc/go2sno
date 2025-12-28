@@ -24,7 +24,9 @@ export interface ResortStatus {
     };
     weather: {
         tempCurrent: number; // Fahrenheit
-        snow24h: number; // Inches
+        snow24h: number; // Inches (prioritizes reported, falls back to calculated)
+        reportedSnow24h?: number; // Inches - from resort API (Epic/Ikon)
+        calculatedSnow24h?: number; // Inches - from Open-Meteo model
         weatherDesc?: string;
     };
     source: string; // 'epic-mix', 'ikon-api', 'micrawl', 'open-meteo-fallback'

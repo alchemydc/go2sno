@@ -74,7 +74,8 @@ export class EpicMixProvider implements ISnowReportProvider {
                 lifts,
                 weather: {
                     tempCurrent: 0, // Filled by Weather Provider
-                    snow24h: 0 // Filled by Weather or separate call
+                    snow24h: 0, // Will be set by manager based on reportedSnow24h
+                    reportedSnow24h: await this.fetchSnowfall24h(config.epicId)
                 },
                 source: 'epic-mix'
             };
@@ -84,4 +85,31 @@ export class EpicMixProvider implements ISnowReportProvider {
             return null;
         }
     }
+
+    private async fetchSnowfall24h(epicId: string): Promise<number | undefined> {
+        try {
+            const dailyStats = await epicMixClient.getResortDailyStats(epicId);
+            const snowfallStr = dailyStats.dailyStats?.snowfall;
+
+            if (!snowfallStr) {
+                logger.debug('EpicMixProvider: No snowfall data in daily stats', { epicId });
+                return undefined;
+            }
+
+            // Parse "7in" or "0in" format
+            const match = snowfallStr.match(/^(\d+(?:\.\d+)?)/);
+            if (match) {
+                const value = parseFloat(match[1]);
+                logger.debug('EpicMixProvider: Parsed snowfall', { epicId, raw: snowfallStr, parsed: value });
+                return value;
+            }
+
+            logger.warn('EpicMixProvider: Could not parse snowfall string', { epicId, snowfallStr });
+            return undefined;
+        } catch (error) {
+            logger.warn('EpicMixProvider: Failed to fetch daily stats', { epicId, error });
+            return undefined;
+        }
+    }
 }
+

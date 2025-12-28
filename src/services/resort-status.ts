@@ -22,7 +22,11 @@ export interface ResortStatusResult {
     };
     weather?: {
         tempCurrent: number; // Fahrenheit
-        snowfallDaily: number; // inches
+        snow24h: number; // inches (prioritized: reported > calculated)
+        snowfallDaily: number; // Legacy alias for snow24h
+        reportedSnow24h?: number; // Resort-reported
+        calculatedSnow24h?: number; // Open-Meteo model
+        weatherDesc?: string;
     };
     source: string;
     debug?: any;
@@ -68,7 +72,11 @@ function mapDomainToLegacy(status: DomainResortStatus): ResortStatusResult {
         },
         weather: {
             tempCurrent: status.weather.tempCurrent,
-            snowfallDaily: status.weather.snow24h
+            snow24h: status.weather.snow24h,
+            snowfallDaily: status.weather.snow24h, // Legacy alias
+            reportedSnow24h: status.weather.reportedSnow24h,
+            calculatedSnow24h: status.weather.calculatedSnow24h,
+            weatherDesc: status.weather.weatherDesc
         },
         source: status.source
     };

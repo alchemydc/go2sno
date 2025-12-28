@@ -25,6 +25,13 @@ interface ResortData {
             details: Record<string, string>;
         };
     };
+    weather?: {
+        tempCurrent: number;
+        snow24h: number;
+        reportedSnow24h?: number;
+        calculatedSnow24h?: number;
+        weatherDesc?: string;
+    };
     debug?: any;
 }
 
@@ -206,9 +213,33 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 </div>
 
                                 <div style={{ textAlign: 'right' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-primary)', fontWeight: 'bold', justifyContent: 'flex-end' }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            color: 'var(--color-primary)',
+                                            fontWeight: 'bold',
+                                            justifyContent: 'flex-end',
+                                            cursor: statusData?.weather?.reportedSnow24h !== undefined &&
+                                                statusData?.weather?.calculatedSnow24h !== undefined &&
+                                                Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
+                                                ? 'help' : 'default',
+                                            textDecoration: statusData?.weather?.reportedSnow24h !== undefined &&
+                                                statusData?.weather?.calculatedSnow24h !== undefined &&
+                                                Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
+                                                ? 'underline dotted' : 'none'
+                                        }}
+                                        title={
+                                            statusData?.weather?.reportedSnow24h !== undefined &&
+                                                statusData?.weather?.calculatedSnow24h !== undefined &&
+                                                Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
+                                                ? `Resort Report: ${Math.round(statusData.weather.reportedSnow24h)}"
+Open-Meteo Model: ${Math.round(statusData.weather.calculatedSnow24h)}"`
+                                                : undefined
+                                        }
+                                    >
                                         <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
-                                        {Math.round(resort.snow24h)}"
+                                        {Math.round(statusData?.weather?.snow24h ?? resort.snow24h)}"
                                     </div>
                                     {resort.temp !== undefined && (
                                         <div style={{ fontSize: '0.8rem', color: '#666' }}>
