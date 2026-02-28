@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { CaicClient } from '../../../../services/caic/client';
-import { SacClient } from '../../../../services/sac/client';
+import { AvalancheOrgClient } from '../../../../services/sac/client';
 import { logger } from '../../../../utils/logger';
 
 // Reusing shared map from legacy route or moving to config?
@@ -33,7 +33,7 @@ const RATING_MAP: Record<string, number> = {
 };
 
 const caicClient = new CaicClient();
-const sacClient = new SacClient();
+const avyOrgClient = new AvalancheOrgClient();
 
 // Tahoe-area destinations mapped to their avalanche center.
 // Most Tahoe resorts fall within SAC (Sierra Avalanche Center).
@@ -53,6 +53,18 @@ const TAHOE_DESTINATION_TO_CENTER: Record<string, string> = {
     northstar: 'SAC',
     kirkwood: 'SAC',
     mammoth: 'ESAC',
+};
+
+// Utah destinations mapped to their UAC forecast zone name.
+// All current Wasatch-area resorts fall within the "Salt Lake" zone.
+const UT_DESTINATION_TO_ZONE: Record<string, string> = {
+    slc: 'Salt Lake',
+    parkcity: 'Salt Lake',
+    deervalley: 'Salt Lake',
+    alta: 'Salt Lake',
+    snowbird: 'Salt Lake',
+    brighton: 'Salt Lake',
+    solitude: 'Salt Lake',
 };
 
 async function getCoForecast(dest: string) {
@@ -101,7 +113,7 @@ async function getTahoeForecast(dest: string) {
     const destKey = dest.toLowerCase().replace(/\s+/g, '');
     const centerId = TAHOE_DESTINATION_TO_CENTER[destKey] || 'SAC';
 
-    const zone = await sacClient.getForecastByCenter(centerId);
+    const zone = await avyOrgClient.getForecastByCenter(centerId);
     if (!zone) return null;
 
     // Map danger_level from the API: -1 means no rating, 1-5 = Low to Extreme
@@ -122,6 +134,30 @@ async function getTahoeForecast(dest: string) {
     };
 }
 
+async function getUtahForecast(dest: string) {
+    const destKey = dest.toLowerCase().replace(/\s+/g, '');
+    const zoneName = UT_DESTINATION_TO_ZONE[destKey] || 'Salt Lake';
+
+    const zone = await avyOrgClient.getForecastByZoneName('UAC', zoneName);
+    if (!zone) return null;
+
+    const dangerLevel = zone.danger_level >= 1 ? zone.danger_level : 0;
+    const dangerDisplay = zone.danger
+        ? zone.danger.charAt(0).toUpperCase() + zone.danger.slice(1)
+        : 'No Rating';
+
+    return {
+        zoneId: `UAC-${zoneName.toLowerCase().replace(/\s+/g, '-')}`,
+        zoneName: zoneName,
+        dangerRating: dangerLevel,
+        dangerRatingDisplay: dangerDisplay,
+        summary: zone.travel_advice || 'No summary available.',
+        issueDate: zone.start_date,
+        url: zone.link,
+        provider: 'uac',
+    };
+}
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const region = searchParams.get('region');
@@ -137,9 +173,9 @@ export async function GET(request: Request) {
             result = await getCoForecast(destination);
         } else if (region === 'tahoe') {
             result = await getTahoeForecast(destination);
+        } else if (region === 'ut') {
+            result = await getUtahForecast(destination);
         } else {
-            // UT stubs
-            // TODO: Integrate UAC
             result = {
                 zoneName: 'Unknown Zone',
                 dangerRating: 0,

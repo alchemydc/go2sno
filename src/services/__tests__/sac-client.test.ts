@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SacClient } from '../sac/client';
+import { AvalancheOrgClient } from '../sac/client';
 
 const mockMapLayerResponse = {
     type: 'FeatureCollection' as const,
@@ -56,15 +56,67 @@ const mockMapLayerResponse = {
             },
             geometry: { type: 'Polygon' as const, coordinates: [] },
         },
+        {
+            type: 'Feature' as const,
+            id: 1738,
+            properties: {
+                name: 'Salt Lake',
+                center: 'Utah Avalanche Center',
+                center_link: 'https://utahavalanchecenter.org/',
+                timezone: 'America/Denver',
+                center_id: 'UAC',
+                state: 'UT',
+                off_season: false,
+                travel_advice: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+                danger: 'considerable',
+                danger_level: 3,
+                color: '#f69730',
+                stroke: '#484848',
+                font_color: '#141B21',
+                link: 'https://utahavalanchecenter.org/forecast/salt-lake',
+                start_date: '2026-02-28T14:30:00',
+                end_date: '2026-03-01T14:30:00',
+                fillOpacity: 0.5,
+                fillIncrement: 0.1,
+                warning: { product: null },
+            },
+            geometry: { type: 'Polygon' as const, coordinates: [] },
+        },
+        {
+            type: 'Feature' as const,
+            id: 1737,
+            properties: {
+                name: 'Ogden',
+                center: 'Utah Avalanche Center',
+                center_link: 'https://utahavalanchecenter.org/',
+                timezone: 'America/Denver',
+                center_id: 'UAC',
+                state: 'UT',
+                off_season: false,
+                travel_advice: 'Moderate conditions. Watch for wind slabs.',
+                danger: 'moderate',
+                danger_level: 2,
+                color: '#f4e500',
+                stroke: '#484848',
+                font_color: '#141B21',
+                link: 'https://utahavalanchecenter.org/forecast/ogden',
+                start_date: '2026-02-28T14:30:00',
+                end_date: '2026-03-01T14:30:00',
+                fillOpacity: 0.5,
+                fillIncrement: 0.1,
+                warning: { product: null },
+            },
+            geometry: { type: 'Polygon' as const, coordinates: [] },
+        },
     ],
 };
 
-describe('SacClient', () => {
-    let client: SacClient;
+describe('AvalancheOrgClient', () => {
+    let client: AvalancheOrgClient;
 
     beforeEach(() => {
         vi.resetAllMocks();
-        client = new SacClient();
+        client = new AvalancheOrgClient();
     });
 
     it('should fetch SAC forecast from map-layer endpoint', async () => {
@@ -126,5 +178,56 @@ describe('SacClient', () => {
         });
 
         await expect(client.getForecastByCenter('SAC')).rejects.toThrow('Avalanche.org API Error');
+    });
+
+    describe('getForecastByZoneName (multi-zone centers)', () => {
+        it('should return Salt Lake zone for UAC', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: async () => mockMapLayerResponse,
+            });
+
+            const result = await client.getForecastByZoneName('UAC', 'Salt Lake');
+
+            expect(result).not.toBeNull();
+            expect(result!.name).toBe('Salt Lake');
+            expect(result!.center_id).toBe('UAC');
+            expect(result!.danger).toBe('considerable');
+            expect(result!.danger_level).toBe(3);
+        });
+
+        it('should return Ogden zone for UAC', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: async () => mockMapLayerResponse,
+            });
+
+            const result = await client.getForecastByZoneName('UAC', 'Ogden');
+
+            expect(result).not.toBeNull();
+            expect(result!.name).toBe('Ogden');
+            expect(result!.danger_level).toBe(2);
+        });
+
+        it('should be case-insensitive for zone name', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: async () => mockMapLayerResponse,
+            });
+
+            const result = await client.getForecastByZoneName('UAC', 'salt lake');
+            expect(result).not.toBeNull();
+            expect(result!.name).toBe('Salt Lake');
+        });
+
+        it('should return null for unknown zone name', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: async () => mockMapLayerResponse,
+            });
+
+            const result = await client.getForecastByZoneName('UAC', 'Nonexistent');
+            expect(result).toBeNull();
+        });
     });
 });

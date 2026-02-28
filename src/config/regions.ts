@@ -110,7 +110,7 @@ export const REGIONS: Record<string, Region> = {
         services: {
             weather: true,
             roads: false, // Future: UDOT
-            avalanche: false, // Future: UAC
+            avalanche: true, // UAC (Utah Avalanche Center) via avalanche.org
         },
         providers: {
             road: 'udot', // Will use stub for now

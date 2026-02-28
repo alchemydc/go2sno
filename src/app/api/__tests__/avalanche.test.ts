@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 // Mock the entire caic module before importing
 const mockGetForecastByZoneSlug = vi.fn();
 const mockGetForecastByCenter = vi.fn();
+const mockGetForecastByZoneName = vi.fn();
 
 vi.mock('../../../services/caic/client', () => ({
     CaicClient: class {
@@ -15,9 +16,20 @@ vi.mock('../../../services/caic/client', () => ({
 }));
 
 vi.mock('../../../services/sac/client', () => ({
+    AvalancheOrgClient: class {
+        getForecastByCenter(...args: any[]) {
+            return mockGetForecastByCenter(...args);
+        }
+        getForecastByZoneName(...args: any[]) {
+            return mockGetForecastByZoneName(...args);
+        }
+    },
     SacClient: class {
         getForecastByCenter(...args: any[]) {
             return mockGetForecastByCenter(...args);
+        }
+        getForecastByZoneName(...args: any[]) {
+            return mockGetForecastByZoneName(...args);
         }
     }
 }));
@@ -164,6 +176,66 @@ describe('/api/avalanche', () => {
             mockGetForecastByCenter.mockResolvedValue(null);
 
             const request = new Request('http://localhost/api/avalanche?region=tahoe&destination=heavenly');
+            await GET(request);
+
+            expect(NextResponse.json).toHaveBeenCalledWith(
+                { error: 'Not found' },
+                { status: 404 }
+            );
+        });
+    });
+
+    describe('Utah region (UAC)', () => {
+        it('should return UAC Salt Lake forecast for Utah destinations', async () => {
+            mockGetForecastByZoneName.mockResolvedValue({
+                name: 'Salt Lake',
+                center_id: 'UAC',
+                danger: 'considerable',
+                danger_level: 3,
+                travel_advice: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+                link: 'https://utahavalanchecenter.org/forecast/salt-lake',
+                start_date: '2026-02-28T14:30:00',
+            });
+
+            const request = new Request('http://localhost/api/avalanche?region=ut&destination=alta');
+            await GET(request);
+
+            expect(mockGetForecastByZoneName).toHaveBeenCalledWith('UAC', 'Salt Lake');
+            expect(NextResponse.json).toHaveBeenCalledWith({
+                zoneId: 'UAC-salt-lake',
+                zoneName: 'Salt Lake',
+                dangerRating: 3,
+                dangerRatingDisplay: 'Considerable',
+                summary: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+                issueDate: '2026-02-28T14:30:00',
+                url: 'https://utahavalanchecenter.org/forecast/salt-lake',
+                provider: 'uac',
+            });
+        });
+
+        it('should map all Wasatch resorts to Salt Lake zone', async () => {
+            mockGetForecastByZoneName.mockResolvedValue({
+                name: 'Salt Lake',
+                center_id: 'UAC',
+                danger: 'moderate',
+                danger_level: 2,
+                travel_advice: 'Evaluate terrain carefully.',
+                link: 'https://utahavalanchecenter.org/forecast/salt-lake',
+                start_date: '2026-02-28T14:30:00',
+            });
+
+            for (const dest of ['snowbird', 'brighton', 'solitude', 'parkcity', 'deervalley', 'slc']) {
+                vi.mocked(NextResponse.json).mockClear();
+                const request = new Request(`http://localhost/api/avalanche?region=ut&destination=${dest}`);
+                await GET(request);
+                expect(mockGetForecastByZoneName).toHaveBeenCalledWith('UAC', 'Salt Lake');
+            }
+        });
+
+        it('should return 404 when UAC returns null', async () => {
+            mockGetForecastByZoneName.mockResolvedValue(null);
+
+            const request = new Request('http://localhost/api/avalanche?region=ut&destination=alta');
             await GET(request);
 
             expect(NextResponse.json).toHaveBeenCalledWith(
