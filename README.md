@@ -15,15 +15,19 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
     *   *Metrics:* Open lifts, open/total percentage, terrain park status, and 24h snow totals (both resort-reported and weather-modeled).
     *   *Sorting:* Sort by Snow Report, alphabetically, or by **Pass Affiliation** (Epic, Ikon, Independent).
     *   *Overlays:* Detailed lift status and terrain park modals with open/scheduled/hold/closed groupings.
-*   **Avalanche Forecasts:** Regional avalanche danger ratings (1–5 scale with color coding) from CAIC (Colorado). Stubs in place for UAC (Utah), SAC (Tahoe), and other regions.
+*   **Avalanche Forecasts:** Regional avalanche danger ratings (1–5 scale with color coding) from multiple providers:
+    *   *Colorado:* CAIC via Avalanche.org map-layer API with point-in-polygon zone matching.
+    *   *Utah:* UAC via Avalanche.org map-layer API (zone-name matching).
+    *   *Tahoe:* SAC & ESAC via Avalanche.org map-layer API (center-id matching). Mammoth routes to ESAC.
+    *   All three use the unified `AvalancheOrgClient` — no brittle zone-ID mappings.
 
 ## Region Status
 
 | Region | Resorts | Roads | Avalanche | Notes |
 |--------|---------|-------|-----------|-------|
-| Colorado | ✅ Epic + Ikon + Independent | ✅ CDOT (COtrip) | ✅ CAIC | Work in progress |
-| Utah | ✅ Epic + Ikon + Independent | 🔲 UDOT (stub) | 🔲 UAC (stub) | Resort status works; road/avy pending |
-| Tahoe | ✅ Epic + Ikon + Independent | ✅ Caltrans | 🔲 SAC (stub) | |
+| Colorado | ✅ Epic + Ikon + Independent | ✅ CDOT (COtrip) | ✅ CAIC (via Avalanche.org) | Coordinate-based zone matching |
+| Utah | ✅ Epic + Ikon + Independent | 🔲 UDOT (stub) | ✅ UAC (via Avalanche.org) | Road service pending |
+| Tahoe | ✅ Epic + Ikon + Independent | ✅ Caltrans | ✅ SAC + ESAC (via Avalanche.org) | |
 | SoCal | ✅ Epic + Ikon + Independent | ✅ Caltrans | — | No avalanche center |
 | PNW | ✅ Epic + Ikon + Independent | 🔲 Stub | 🔲 Stub | Resort status works |
 | Japan | ✅ Epic + Ikon | 🔲 Stub | 🔲 Stub | Resort status works |
@@ -47,7 +51,7 @@ This project uses a modern, extensible architecture designed to support multiple
 2.  **Service Factory (`src/services/factory.ts`)**:
     - A central factory instantiates the correct services based on the selected region's `providers` config.
     - **Road Service:** Returns `IRoadService` — `CdotRoadService` (CO), `CaltransRoadService` (Tahoe/SoCal), `UdotRoadService` (UT), or `StubRoadService`.
-    - **Avalanche Service:** Returns `IAvalancheService` — `ColoradoAvalancheService` (CO), `UtahAvalancheService` (UT), or `StubAvalancheService`.
+    - **Avalanche Service:** Returns `IAvalancheService` — `ColoradoAvalancheService` (CO), `UtahAvalancheService` (UT), `SierraAvalancheService` (Tahoe), or `StubAvalancheService`. All three live services delegate to the unified `AvalancheOrgClient`.
 
 3.  **Unified Resort Data (`src/services/snow-report/`)**:
     - **`ResortStatusManager`**: Orchestrates multi-provider data fetching with fallback.
@@ -64,7 +68,7 @@ This project uses a modern, extensible architecture designed to support multiple
     - `/roads/conditions` — Road conditions by region
     - `/roads/cameras` — HLS camera feeds filtered by region
     - `/roads/weather-stations` — Caltrans RWIS data
-    - `/avalanche` — CAIC forecasts by zone
+    - `/avalanche` — Avalanche forecasts by region (CO, UT, Tahoe) via Avalanche.org map-layer API
     - `/resorts/[id]/status` — Resort status via `ResortStatusManager`
     - `/route` — TomTom routing
     - `/weather` — NWS weather by lat/lon
@@ -118,7 +122,7 @@ This project uses a modern, extensible architecture designed to support multiple
     *   TomTom (Routing)
     *   National Weather Service (Weather)
     *   Open-Meteo (Modeled snow/temperature)
-    *   CAIC (Colorado avalanche forecasts)
+    *   Avalanche.org map-layer API (CAIC, UAC, SAC, ESAC avalanche forecasts)
     *   Epic Mix API (Vail Resorts lift/trail/park status) — public, undocumented
     *   Ikon / MtnPowder API (Ikon resort lift/trail status) — private, undocumented
     *   Micrawl (Web scraping fallback for resort status)
