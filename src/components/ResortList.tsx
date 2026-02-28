@@ -1,0 +1,297 @@
+import React, { useEffect, useState } from 'react';
+import type { Resort } from '../services/resorts';
+import { Snowflake, Mountain } from 'lucide-react';
+import { useRegion } from '../context/RegionContext';
+import { LiftStatusOverlay } from './LiftStatusOverlay';
+import { TerrainParkOverlay } from './TerrainParkOverlay';
+import { EpicLogo, IkonLogo } from './PassLogos';
+
+interface ResortListProps {
+    resorts: Resort[];
+    onSelect?: (resortId: string) => void;
+}
+
+interface ResortData {
+    resort: string;
+    timestamp: string;
+    lifts: Record<string, string>;
+    summary: {
+        open: number;
+        total: number;
+        percentOpen: number;
+        parks?: {
+            open: number;
+            total: number;
+            details: Record<string, string>;
+        };
+    };
+    weather?: {
+        tempCurrent: number;
+        snow24h: number;
+        reportedSnow24h?: number;
+        calculatedSnow24h?: number;
+        weatherDesc?: string;
+    };
+    debug?: any;
+}
+
+export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts, onSelect }) => {
+    const { selectedRegion } = useRegion();
+    const [sortedResorts, setSortedResorts] = useState<Resort[]>([]);
+    const [sortBy, setSortBy] = useState<'snow' | 'name' | 'pass'>('snow');
+
+    const [resortStatuses, setResortStatuses] = useState<Record<string, ResortData>>({});
+    const [activeResortId, setActiveResortId] = useState<string | null>(null);
+    const [activeOverlay, setActiveOverlay] = useState<'lifts' | 'parks' | null>(null);
+
+    useEffect(() => {
+        if (!initialResorts.length) {
+            setSortedResorts([]);
+            return;
+        }
+
+        const sorted = [...initialResorts].sort((a, b) => {
+            if (sortBy === 'snow') {
+                // Use actual status data snow values instead of initial resort snow24h
+                const snowA = resortStatuses[a.id]?.weather?.snow24h ?? a.snow24h;
+                const snowB = resortStatuses[b.id]?.weather?.snow24h ?? b.snow24h;
+                return snowB - snowA;
+            }
+            if (sortBy === 'pass') {
+                const getScore = (r: Resort) => {
+                    if (r.affiliation === 'ikon') return 3;
+                    if (r.affiliation === 'epic') return 2;
+                    return 1;
+                };
+                const scoreA = getScore(a);
+                const scoreB = getScore(b);
+                if (scoreA !== scoreB) return scoreB - scoreA;
+                // Secondary sort by actual snow data
+                const snowA = resortStatuses[a.id]?.weather?.snow24h ?? a.snow24h;
+                const snowB = resortStatuses[b.id]?.weather?.snow24h ?? b.snow24h;
+                return snowB - snowA;
+            }
+            return a.name.localeCompare(b.name);
+        });
+        setSortedResorts(sorted);
+    }, [initialResorts, sortBy, resortStatuses]); // Added resortStatuses dependency
+
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            if (!initialResorts.length) return;
+
+            // Fetch in parallel
+            const promises = initialResorts.map(async (resort) => {
+                try {
+                    const res = await fetch(`/api/v1/resorts/${resort.id}/status`);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    return { id: resort.id, data };
+                } catch (err) {
+                    console.error(`Failed to fetch status for ${resort.id}`, err);
+                    return null;
+                }
+            });
+
+            const results = await Promise.all(promises);
+            const statusMap: Record<string, ResortData> = {};
+
+            results.forEach(result => {
+                if (result) {
+                    statusMap[result.id] = result.data;
+                }
+            });
+
+            setResortStatuses(statusMap);
+        };
+
+        fetchStatuses();
+    }, [initialResorts]);
+
+    if (!selectedRegion) {
+        return null;
+    }
+
+    const handleSort = (type: 'snow' | 'name' | 'pass') => {
+        setSortBy(type);
+    };
+
+    const activeResortData = activeResortId ? resortStatuses[activeResortId] : null;
+
+    return (
+        <>
+            <div className="card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Mountain size={24} color="var(--color-primary)" style={{ marginRight: '0.5rem' }} />
+                        <h2 style={{ margin: 0 }}>Resort Status</h2>
+                    </div>
+                    <div>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => handleSort(e.target.value as 'snow' | 'name' | 'pass')}
+                            style={{ padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
+                        >
+                            <option value="snow">Sort by Snow</option>
+                            <option value="pass">Sort by Pass</option>
+                            <option value="name">Sort by Name</option>
+                        </select>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {sortedResorts.map((resort) => {
+                        const statusData = resortStatuses[resort.id];
+                        const hasLifts = statusData?.summary?.total > 0;
+                        const hasParks = statusData?.summary?.parks && statusData.summary.parks.total > 0;
+
+                        return (
+                            <div
+                                key={resort.id}
+                                onClick={() => onSelect?.(resort.id)}
+                                role="button"
+                                tabIndex={0}
+                                className={`resort-item ${onSelect ? 'clickable' : ''}`}
+                                style={{
+                                    cursor: onSelect ? 'pointer' : 'default'
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        onSelect?.(resort.id);
+                                    }
+                                }}
+                            >
+                                <div>
+                                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>{resort.name}</h3>
+
+                                    {/* Status Badges - Vertical Stack for Consistency */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                        {hasLifts && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveResortId(resort.id);
+                                                    setActiveOverlay('lifts');
+                                                }}
+                                                style={{
+                                                    backgroundColor: statusData.summary.open > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                                    color: statusData.summary.open > 0 ? '#10b981' : '#ef4444',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.75rem',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    cursor: 'pointer',
+                                                    border: `1px solid ${statusData.summary.open > 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                                    transition: 'all 0.2s',
+                                                    width: 'fit-content'
+                                                }}>
+                                                {statusData.summary.open}/{statusData.summary.total} Lifts Open
+                                                <span style={{ fontSize: '0.8em', opacity: 0.7 }}>ℹ️</span>
+                                            </span>
+                                        )}
+                                        {hasParks && statusData?.summary.parks && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveResortId(resort.id);
+                                                    setActiveOverlay('parks');
+                                                }}
+                                                style={{
+                                                    backgroundColor: 'rgba(243, 244, 246, 0.8)',
+                                                    color: '#374151',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.75rem',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    cursor: 'pointer',
+                                                    border: '1px solid rgba(209, 213, 219, 0.5)',
+                                                    transition: 'all 0.2s',
+                                                    width: 'fit-content'
+                                                }}>
+                                                {statusData.summary.parks.open}/{statusData.summary.parks.total} Parks Open
+                                                <span style={{ fontSize: '0.8em', opacity: 0.7 }}>ℹ️</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div style={{ textAlign: 'right' }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            color: 'var(--color-primary)',
+                                            fontWeight: 'bold',
+                                            justifyContent: 'flex-end',
+                                            cursor: statusData?.weather?.reportedSnow24h !== undefined &&
+                                                statusData?.weather?.calculatedSnow24h !== undefined &&
+                                                Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
+                                                ? 'help' : 'default',
+                                            textDecoration: statusData?.weather?.reportedSnow24h !== undefined &&
+                                                statusData?.weather?.calculatedSnow24h !== undefined &&
+                                                Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
+                                                ? 'underline dotted' : 'none'
+                                        }}
+                                        title={
+                                            statusData?.weather?.reportedSnow24h !== undefined &&
+                                                statusData?.weather?.calculatedSnow24h !== undefined &&
+                                                Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
+                                                ? `Resort Report: ${Math.round(statusData.weather.reportedSnow24h)}"
+Open-Meteo Model: ${Math.round(statusData.weather.calculatedSnow24h)}"`
+                                                : undefined
+                                        }
+                                    >
+                                        <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
+                                        {Math.round(statusData?.weather?.snow24h ?? resort.snow24h)}"
+                                    </div>
+                                    {resort.temp !== undefined && (
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                            {resort.temp}°F
+                                        </div>
+                                    )}
+                                    {resort.affiliation && (
+                                        <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'flex-end' }}>
+                                            {resort.affiliation === 'epic' ? (
+                                                <EpicLogo height={18} />
+                                            ) : (
+                                                <IkonLogo height={18} />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {activeResortData && activeOverlay === 'lifts' && (
+                <LiftStatusOverlay
+                    isOpen={true}
+                    onClose={() => { setActiveOverlay(null); setActiveResortId(null); }}
+                    resortName={initialResorts.find(r => r.id === activeResortId)?.name || 'Resort'}
+                    lifts={activeResortData.lifts}
+                    summary={activeResortData.summary}
+                />
+            )}
+
+            {activeResortData && activeOverlay === 'parks' && activeResortData.summary.parks && (
+                <TerrainParkOverlay
+                    isOpen={true}
+                    onClose={() => { setActiveOverlay(null); setActiveResortId(null); }}
+                    resortName={initialResorts.find(r => r.id === activeResortId)?.name || 'Resort'}
+                    parks={activeResortData.summary.parks.details || {}}
+                    summary={{
+                        open: activeResortData.summary.parks.open,
+                        total: activeResortData.summary.parks.total
+                    }}
+                />
+            )}
+        </>
+    );
+};
