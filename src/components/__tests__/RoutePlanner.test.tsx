@@ -248,7 +248,7 @@ describe('RoutePlanner', () => {
         );
 
         // Map container should be rendered
-        expect(container.querySelector('[style*="height: 400px"]')).toBeTruthy();
+        expect(container.querySelector('[style*="height: 300px"]')).toBeTruthy();
     });
 
     it('should render road conditions on map', () => {
@@ -280,7 +280,7 @@ describe('RoutePlanner', () => {
         );
 
         // Map container should be rendered
-        expect(container.querySelector('[style*="height: 400px"]')).toBeTruthy();
+        expect(container.querySelector('[style*="height: 300px"]')).toBeTruthy();
     });
 
     it('should display loading state initially', () => {

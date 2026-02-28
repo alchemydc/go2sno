@@ -181,10 +181,10 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
     return (
         <>
             <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Mountain size={24} color="var(--color-primary)" style={{ marginRight: '0.5rem' }} />
-                        <h2 style={{ margin: 0 }}>Resort Status</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', minWidth: 0 }}>
+                        <Mountain size={20} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                        <h2 style={{ margin: 0, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Resort Status</h2>
                         {loadingStatuses && (
                             <span style={{ marginLeft: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                                 <Loader2 size={14} className="animate-spin" />
@@ -207,7 +207,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                         <select
                             value={sortBy}
                             onChange={(e) => handleSort(e.target.value as 'snow' | 'name' | 'pass')}
-                            style={{ padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
+                            style={{ padding: '0.4rem 0.5rem', fontSize: '0.8rem' }}
                         >
                             <option value="snow">Sort by Snow</option>
                             <option value="pass">Sort by Pass</option>
@@ -238,7 +238,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 }}
                             >
                                 <div>
-                                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
+                                    <h3 style={{ margin: '0 0 0.35rem 0', fontSize: '1rem', fontWeight: 600 }}>
                                         {resort.name}
                                         {resortErrors.has(resort.id) && (
                                             <span title="Status unavailable" style={{ marginLeft: '0.4rem', verticalAlign: 'middle', display: 'inline-flex' }}>
@@ -248,7 +248,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                     </h3>
 
                                     {/* Status Badges - Vertical Stack for Consistency */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'flex-start' }}>
                                         {loadingStatuses && !statusData ? (
                                             <span className="skeleton" style={{ width: '100px', height: '20px' }} />
                                         ) : (
