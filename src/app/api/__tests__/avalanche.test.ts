@@ -4,11 +4,20 @@ import { NextResponse } from 'next/server';
 
 // Mock the entire caic module before importing
 const mockGetForecastByZoneSlug = vi.fn();
+const mockGetForecastByCenter = vi.fn();
 
 vi.mock('../../../services/caic/client', () => ({
     CaicClient: class {
         getForecastByZoneSlug(...args: any[]) {
             return mockGetForecastByZoneSlug(...args);
+        }
+    }
+}));
+
+vi.mock('../../../services/sac/client', () => ({
+    SacClient: class {
+        getForecastByCenter(...args: any[]) {
+            return mockGetForecastByCenter(...args);
         }
     }
 }));
@@ -94,5 +103,73 @@ describe('/api/avalanche', () => {
                 provider: 'caic'
             }
         );
+    });
+
+    describe('Tahoe region (SAC)', () => {
+        it('should return SAC forecast for Tahoe destinations', async () => {
+            mockGetForecastByCenter.mockResolvedValue({
+                name: 'Central Sierra Nevada',
+                center_id: 'SAC',
+                danger: 'moderate',
+                danger_level: 2,
+                travel_advice: 'Heightened avalanche conditions on specific terrain features.',
+                link: 'https://www.sierraavalanchecenter.org/forecasts/avalanche/central-sierra-nevada#/central-sierra-nevada/',
+                start_date: '2026-02-28T14:33:00',
+            });
+
+            const request = new Request('http://localhost/api/avalanche?region=tahoe&destination=heavenly');
+            await GET(request);
+
+            expect(mockGetForecastByCenter).toHaveBeenCalledWith('SAC');
+            expect(NextResponse.json).toHaveBeenCalledWith({
+                zoneId: 'SAC',
+                zoneName: 'Central Sierra Nevada',
+                dangerRating: 2,
+                dangerRatingDisplay: 'Moderate',
+                summary: 'Heightened avalanche conditions on specific terrain features.',
+                issueDate: '2026-02-28T14:33:00',
+                url: 'https://www.sierraavalanchecenter.org/forecasts/avalanche/central-sierra-nevada#/central-sierra-nevada/',
+                provider: 'sac',
+            });
+        });
+
+        it('should route Mammoth to ESAC', async () => {
+            mockGetForecastByCenter.mockResolvedValue({
+                name: 'Eastside Region',
+                center_id: 'ESAC',
+                danger: 'considerable',
+                danger_level: 3,
+                travel_advice: 'Evaluate snow and terrain carefully.',
+                link: 'https://www.esavalanche.org/forecasts#/eastside-region',
+                start_date: '2026-02-28T15:00:00',
+            });
+
+            const request = new Request('http://localhost/api/avalanche?region=tahoe&destination=mammoth');
+            await GET(request);
+
+            expect(mockGetForecastByCenter).toHaveBeenCalledWith('ESAC');
+            expect(NextResponse.json).toHaveBeenCalledWith({
+                zoneId: 'ESAC',
+                zoneName: 'Eastside Region',
+                dangerRating: 3,
+                dangerRatingDisplay: 'Considerable',
+                summary: 'Evaluate snow and terrain carefully.',
+                issueDate: '2026-02-28T15:00:00',
+                url: 'https://www.esavalanche.org/forecasts#/eastside-region',
+                provider: 'sac',
+            });
+        });
+
+        it('should return 404 when SAC returns null', async () => {
+            mockGetForecastByCenter.mockResolvedValue(null);
+
+            const request = new Request('http://localhost/api/avalanche?region=tahoe&destination=heavenly');
+            await GET(request);
+
+            expect(NextResponse.json).toHaveBeenCalledWith(
+                { error: 'Not found' },
+                { status: 404 }
+            );
+        });
     });
 });

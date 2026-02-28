@@ -153,7 +153,7 @@ export const REGIONS: Record<string, Region> = {
         services: {
             weather: true,
             roads: false, // Future: Caltrans
-            avalanche: false, // Future: SAC
+            avalanche: true, // SAC (Sierra Avalanche Center) via avalanche.org
         },
         providers: {
             road: 'caltrans',

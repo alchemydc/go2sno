@@ -7,6 +7,7 @@ import { CaltransRoadService } from './caltrans';
 import { UdotRoadService } from './udot';
 import { ColoradoAvalancheService } from './avalanche';
 import { UtahAvalancheService } from './uac';
+import { SierraAvalancheService } from './sac';
 
 // Stub implementations for unsupported providers or fallbacks
 class StubRoadService implements IRoadService {
@@ -49,7 +50,8 @@ export function getAvalancheService(regionId: string): IAvalancheService {
             return new ColoradoAvalancheService();
         case 'uac':
             return new UtahAvalancheService();
-        case 'sac': // Future Sierra Avalanche Center
+        case 'sac':
+            return new SierraAvalancheService();
         case 'stub':
         default:
             return new StubAvalancheService();
