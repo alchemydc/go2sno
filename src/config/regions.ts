@@ -29,7 +29,7 @@ export interface Region {
     // Service Provider Configuration
     providers: {
         road: 'cdot' | 'caltrans' | 'udot' | 'stub';
-        avalanche: 'caic' | 'uac' | 'sac' | 'stub';
+        avalanche: 'caic' | 'uac' | 'sac' | 'nwac' | 'stub';
     };
 
     // Priority keywords for camera sorting in this region
