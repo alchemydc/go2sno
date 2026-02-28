@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { Resort } from '../services/resorts';
-import { Snowflake, Mountain } from 'lucide-react';
+import { Snowflake, Mountain, Loader2, RefreshCw, AlertTriangle, ChevronDown, ChevronUp, CircleCheck, CircleX, Trees } from 'lucide-react';
 import { useRegion } from '../context/RegionContext';
+import { relativeTime } from '../utils/time';
 import { LiftStatusOverlay } from './LiftStatusOverlay';
 import { TerrainParkOverlay } from './TerrainParkOverlay';
 import { EpicLogo, IkonLogo } from './PassLogos';
@@ -9,6 +10,7 @@ import { EpicLogo, IkonLogo } from './PassLogos';
 interface ResortListProps {
     resorts: Resort[];
     onSelect?: (resortId: string) => void;
+    selectedResortId?: string;
 }
 
 interface ResortData {
@@ -35,14 +37,19 @@ interface ResortData {
     debug?: any;
 }
 
-export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts, onSelect }) => {
+export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts, onSelect, selectedResortId }) => {
     const { selectedRegion } = useRegion();
     const [sortedResorts, setSortedResorts] = useState<Resort[]>([]);
     const [sortBy, setSortBy] = useState<'snow' | 'name' | 'pass'>('snow');
 
     const [resortStatuses, setResortStatuses] = useState<Record<string, ResortData>>({});
+    const [resortErrors, setResortErrors] = useState<Set<string>>(new Set());
+    const [loadingStatuses, setLoadingStatuses] = useState(false);
+    const [statusFetchedAt, setStatusFetchedAt] = useState<Date | null>(null);
+    const [statusTimeDisplay, setStatusTimeDisplay] = useState('');
     const [activeResortId, setActiveResortId] = useState<string | null>(null);
     const [activeOverlay, setActiveOverlay] = useState<'lifts' | 'parks' | null>(null);
+    const [expanded, setExpanded] = useState(true);
 
     useEffect(() => {
         if (!initialResorts.length) {
@@ -80,6 +87,8 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
         const fetchStatuses = async () => {
             if (!initialResorts.length) return;
 
+            setLoadingStatuses(true);
+
             // Fetch in parallel
             const promises = initialResorts.map(async (resort) => {
                 try {
@@ -95,18 +104,60 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
 
             const results = await Promise.all(promises);
             const statusMap: Record<string, ResortData> = {};
+            const errors = new Set<string>();
 
-            results.forEach(result => {
+            results.forEach((result, i) => {
                 if (result) {
                     statusMap[result.id] = result.data;
+                } else {
+                    errors.add(initialResorts[i].id);
                 }
             });
 
             setResortStatuses(statusMap);
+            setResortErrors(errors);
+            setLoadingStatuses(false);
+            setStatusFetchedAt(new Date());
         };
 
         fetchStatuses();
     }, [initialResorts]);
+
+    // Update relative time display every 60s
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (statusFetchedAt) setStatusTimeDisplay(relativeTime(statusFetchedAt));
+        }, 60_000);
+        if (statusFetchedAt) setStatusTimeDisplay(relativeTime(statusFetchedAt));
+        return () => clearInterval(interval);
+    }, [statusFetchedAt]);
+
+    const refreshStatuses = async () => {
+        if (!initialResorts.length || loadingStatuses) return;
+        setLoadingStatuses(true);
+        const promises = initialResorts.map(async (resort) => {
+            try {
+                const res = await fetch(`/api/v1/resorts/${resort.id}/status`);
+                if (!res.ok) return null;
+                const data = await res.json();
+                return { id: resort.id, data };
+            } catch (err) {
+                console.error(`Failed to fetch status for ${resort.id}`, err);
+                return null;
+            }
+        });
+        const results = await Promise.all(promises);
+        const statusMap: Record<string, ResortData> = {};
+        const errors = new Set<string>();
+        results.forEach((result, i) => {
+            if (result) statusMap[result.id] = result.data;
+            else errors.add(initialResorts[i].id);
+        });
+        setResortStatuses(statusMap);
+        setResortErrors(errors);
+        setLoadingStatuses(false);
+        setStatusFetchedAt(new Date());
+    };
 
     if (!selectedRegion) {
         return null;
@@ -118,6 +169,15 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
 
     const activeResortData = activeResortId ? resortStatuses[activeResortId] : null;
 
+    // Collapse list when a resort is selected, expand when deselected
+    useEffect(() => {
+        setExpanded(!selectedResortId);
+    }, [selectedResortId]);
+
+    const displayedResorts = expanded || !selectedResortId
+        ? sortedResorts
+        : sortedResorts.filter(r => r.id === selectedResortId);
+
     return (
         <>
             <div className="card">
@@ -125,6 +185,23 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <Mountain size={24} color="var(--color-primary)" style={{ marginRight: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>Resort Status</h2>
+                        {loadingStatuses && (
+                            <span style={{ marginLeft: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                <Loader2 size={14} className="animate-spin" />
+                                Updating…
+                            </span>
+                        )}
+                        {!loadingStatuses && statusTimeDisplay && (
+                            <span style={{ marginLeft: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+                                {statusTimeDisplay}
+                                <RefreshCw
+                                    size={12}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={refreshStatuses}
+                                    aria-label="Refresh resort statuses"
+                                />
+                            </span>
+                        )}
                     </div>
                     <div>
                         <select
@@ -139,7 +216,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {sortedResorts.map((resort) => {
+                    {displayedResorts.map((resort) => {
                         const statusData = resortStatuses[resort.id];
                         const hasLifts = statusData?.summary?.total > 0;
                         const hasParks = statusData?.summary?.parks && statusData.summary.parks.total > 0;
@@ -150,7 +227,7 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 onClick={() => onSelect?.(resort.id)}
                                 role="button"
                                 tabIndex={0}
-                                className={`resort-item ${onSelect ? 'clickable' : ''}`}
+                                className={`resort-item ${onSelect ? 'clickable' : ''} ${resort.id === selectedResortId ? 'resort-item-selected' : ''}`}
                                 style={{
                                     cursor: onSelect ? 'pointer' : 'default'
                                 }}
@@ -161,10 +238,21 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                 }}
                             >
                                 <div>
-                                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>{resort.name}</h3>
+                                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
+                                        {resort.name}
+                                        {resortErrors.has(resort.id) && (
+                                            <span title="Status unavailable" style={{ marginLeft: '0.4rem', verticalAlign: 'middle', display: 'inline-flex' }}>
+                                                <AlertTriangle size={14} color="var(--color-warning)" />
+                                            </span>
+                                        )}
+                                    </h3>
 
                                     {/* Status Badges - Vertical Stack for Consistency */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                        {loadingStatuses && !statusData ? (
+                                            <span className="skeleton" style={{ width: '100px', height: '20px' }} />
+                                        ) : (
+                                            <>
                                         {hasLifts && (
                                             <span
                                                 onClick={(e) => {
@@ -172,23 +260,9 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                                     setActiveResortId(resort.id);
                                                     setActiveOverlay('lifts');
                                                 }}
-                                                style={{
-                                                    backgroundColor: statusData.summary.open > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                                    color: statusData.summary.open > 0 ? '#10b981' : '#ef4444',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '4px',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.75rem',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px',
-                                                    cursor: 'pointer',
-                                                    border: `1px solid ${statusData.summary.open > 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-                                                    transition: 'all 0.2s',
-                                                    width: 'fit-content'
-                                                }}>
+                                                className={`status-badge ${statusData.summary.open > 0 ? 'status-badge-open' : 'status-badge-closed'}`}>
+                                                {statusData.summary.open > 0 ? <CircleCheck size={12} /> : <CircleX size={12} />}
                                                 {statusData.summary.open}/{statusData.summary.total} Lifts Open
-                                                <span style={{ fontSize: '0.8em', opacity: 0.7 }}>ℹ️</span>
                                             </span>
                                         )}
                                         {hasParks && statusData?.summary.parks && (
@@ -198,36 +272,23 @@ export const ResortList: React.FC<ResortListProps> = ({ resorts: initialResorts,
                                                     setActiveResortId(resort.id);
                                                     setActiveOverlay('parks');
                                                 }}
-                                                style={{
-                                                    backgroundColor: 'rgba(243, 244, 246, 0.8)',
-                                                    color: '#374151',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '4px',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.75rem',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px',
-                                                    cursor: 'pointer',
-                                                    border: '1px solid rgba(209, 213, 219, 0.5)',
-                                                    transition: 'all 0.2s',
-                                                    width: 'fit-content'
-                                                }}>
+                                                className="status-badge status-badge-parks">
+                                                <Trees size={12} />
                                                 {statusData.summary.parks.open}/{statusData.summary.parks.total} Parks Open
-                                                <span style={{ fontSize: '0.8em', opacity: 0.7 }}>ℹ️</span>
                                             </span>
+                                        )}
+                                            </>
                                         )}
                                     </div>
                                 </div>
 
-                                <div style={{ textAlign: 'right' }}>
+                                <div className="resort-item-stats">
+                                    {loadingStatuses && !statusData ? (
+                                        <span className="skeleton" style={{ width: '40px', height: '24px' }} />
+                                    ) : (
                                     <div
+                                        className="resort-item-snow"
                                         style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            color: 'var(--color-primary)',
-                                            fontWeight: 'bold',
-                                            justifyContent: 'flex-end',
                                             cursor: statusData?.weather?.reportedSnow24h !== undefined &&
                                                 statusData?.weather?.calculatedSnow24h !== undefined &&
                                                 Math.abs((statusData.weather.reportedSnow24h || 0) - (statusData.weather.calculatedSnow24h || 0)) > 1
@@ -249,8 +310,9 @@ Open-Meteo Model: ${Math.round(statusData.weather.calculatedSnow24h)}"`
                                         <Snowflake size={20} style={{ marginRight: '0.25rem' }} />
                                         {Math.round(statusData?.weather?.snow24h ?? resort.snow24h)}"
                                     </div>
+                                    )}
                                     {resort.temp !== undefined && (
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                        <div className="resort-item-temp">
                                             {resort.temp}°F
                                         </div>
                                     )}
@@ -268,6 +330,33 @@ Open-Meteo Model: ${Math.round(statusData.weather.calculatedSnow24h)}"`
                         );
                     })}
                 </div>
+                {selectedResortId && sortedResorts.length > 1 && (
+                    <button
+                        onClick={() => setExpanded(prev => !prev)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.25rem',
+                            width: '100%',
+                            marginTop: '0.75rem',
+                            padding: '0.5rem',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--color-primary)',
+                            fontSize: '0.85rem',
+                            fontWeight: 500,
+                            fontFamily: 'inherit'
+                        }}
+                    >
+                        {expanded ? (
+                            <><ChevronUp size={16} /> Collapse</>  
+                        ) : (
+                            <><ChevronDown size={16} /> Show all {sortedResorts.length} resorts</>
+                        )}
+                    </button>
+                )}
             </div>
 
             {activeResortData && activeOverlay === 'lifts' && (

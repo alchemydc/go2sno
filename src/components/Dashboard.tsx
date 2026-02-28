@@ -10,7 +10,8 @@ import { IncidentsCard } from './IncidentsCard';
 import { AvalancheReportCard } from './AvalancheReportCard';
 import { getWeather } from '../services/weather';
 import type { WeatherForecast } from '../services/weather';
-import { CloudSun } from 'lucide-react';
+import { CloudSun, X, AlertTriangle } from 'lucide-react';
+import { relativeTime } from '../utils/time';
 import { ThemeToggle } from './ThemeToggle';
 import { Incident, RoadCondition, Camera } from '../types/domain';
 import { prioritizeCameras } from '../utils/camera-priority';
@@ -25,6 +26,9 @@ const regions = getAllRegions();
 export const Dashboard: React.FC = () => {
     const { selectedRegion, setRegionId } = useRegion();
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
+    const [weatherError, setWeatherError] = useState(false);
+    const [weatherFetchedAt, setWeatherFetchedAt] = useState<Date | null>(null);
+    const [weatherTimeDisplay, setWeatherTimeDisplay] = useState('');
     const [destination, setDestination] = useState('');
     const [from, setFrom] = useState('');
     const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
@@ -33,10 +37,31 @@ export const Dashboard: React.FC = () => {
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [conditions, setConditions] = useState<RoadCondition[]>([]);
     const [loadingAlerts, setLoadingAlerts] = useState(true);
+    const [alertsError, setAlertsError] = useState(false);
     const [allCameras, setAllCameras] = useState<Camera[]>([]);
     const [cameras, setCameras] = useState<Camera[]>([]);
     const [resorts, setResorts] = useState<Resort[]>([]);
     const [showAllCameras, setShowAllCameras] = useState(false);
+
+    // Close camera modal on Escape key
+    useEffect(() => {
+        if (!showAllCameras) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setShowAllCameras(false);
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [showAllCameras]);
+
+    // Update relative time displays every 60s
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (weatherFetchedAt) setWeatherTimeDisplay(relativeTime(weatherFetchedAt));
+        }, 60_000);
+        // Set initial display
+        if (weatherFetchedAt) setWeatherTimeDisplay(relativeTime(weatherFetchedAt));
+        return () => clearInterval(interval);
+    }, [weatherFetchedAt]);
 
     const locations = React.useMemo(() => {
         return selectedRegion ? selectedRegion.locations.reduce((acc, loc) => {
@@ -51,6 +76,8 @@ export const Dashboard: React.FC = () => {
         setFrom('');
         setDestination('');
         setWeather(null);
+        setWeatherError(false);
+        setWeatherFetchedAt(null);
         setRouteGeoJSON(null);
         setAllIncidents([]);
         setAllConditions([]);
@@ -68,7 +95,13 @@ export const Dashboard: React.FC = () => {
         const coords = locations[destination];
         if (coords) {
             const [lat, lon] = coords.split(',').map(Number);
-            getWeather(lat, lon).then(setWeather);
+            setWeatherError(false);
+            getWeather(lat, lon).then(data => {
+                setWeather(data);
+                setWeatherFetchedAt(new Date());
+            }).catch(() => {
+                setWeatherError(true);
+            });
         }
     }, [destination, locations]);
 
@@ -111,6 +144,7 @@ export const Dashboard: React.FC = () => {
 
         const fetchData = async () => {
             setLoadingAlerts(true);
+            setAlertsError(false);
             try {
                 const service = getRoadService(selectedRegion.id);
                 const [incidentsData, conditionsData, camerasData] = await Promise.all([
@@ -127,6 +161,7 @@ export const Dashboard: React.FC = () => {
                 });
             } catch (error) {
                 logger.error('Error loading alerts:', error);
+                setAlertsError(true);
             } finally {
                 setLoadingAlerts(false);
             }
@@ -216,8 +251,8 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="container">
-            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <header className="dashboard-header">
+                <div className="dashboard-header-left">
                     <div style={{ position: 'relative', width: '60px', height: '60px' }}>
                         <Image
                             src="/logo.jpg"
@@ -229,13 +264,27 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div>
 
-                        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0 }}>play in the snow</p>
+                        <p className="dashboard-tagline">play in the snow</p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="dashboard-header-right">
                     <ThemeToggle />
                 </div>
             </header>
+
+            {!selectedRegion ? (
+                <div className="empty-state">
+                    <h2>Where are you headed?</h2>
+                    <p>Select a region to check conditions, plan your route, and track snow.</p>
+                    <div className="region-chips">
+                        {regions.map(r => (
+                            <button key={r.id} onClick={() => setRegionId(r.id)} className="region-chip">
+                                {r.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            ) : (
 
             <div className="dashboard-grid">
 
@@ -262,7 +311,7 @@ export const Dashboard: React.FC = () => {
                     <div className="area-cameras">
                         {destination && (
                             <div className="card" style={{ marginBottom: 0, height: '100%' }}>
-                                <CameraGrid cameras={cameras.slice(0, 4)} loading={loadingAlerts} />
+                                <CameraGrid cameras={cameras.slice(0, 4)} loading={loadingAlerts} error={alertsError} />
 
                                 {!loadingAlerts && cameras.length > 4 && (
                                     <div style={{ marginTop: '1rem', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '0.75rem' }}>
@@ -297,21 +346,44 @@ export const Dashboard: React.FC = () => {
                         <ResortList
                             resorts={resorts}
                             onSelect={setDestination}
+                            selectedResortId={destination}
                         />
                     </div>
 
                     <div className="area-weather">
                         {destination && (
-                            <div className="card" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #1e40af)', color: 'white', marginBottom: 0 }}>
+                            <div className="card card-weather" style={{ marginBottom: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                                     <CloudSun size={24} style={{ marginRight: '0.5rem' }} />
                                     <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{destinationName} Weather</h2>
                                 </div>
                                 {weather ? (
                                     <div>
-                                        <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{weather.temperature}°F</div>
-                                        <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{weather.shortForecast}</div>
-                                        <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Wind: {weather.windSpeed}</div>
+                                        <div className="weather-temp">{weather.temperature}°F</div>
+                                        <div className="weather-desc">{weather.shortForecast}</div>
+                                        <div className="weather-wind">Wind: {weather.windSpeed}</div>
+                                        {weatherTimeDisplay && (
+                                            <div className="weather-updated">Updated {weatherTimeDisplay}</div>
+                                        )}
+                                    </div>
+                                ) : weatherError ? (
+                                    <div className="weather-error">
+                                        <AlertTriangle size={16} />
+                                        <span>Weather unavailable</span>
+                                        <button
+                                            onClick={() => {
+                                                const coords = locations[destination];
+                                                if (coords) {
+                                                    const [lat, lon] = coords.split(',').map(Number);
+                                                    setWeatherError(false);
+                                                    getWeather(lat, lon).then(data => {
+                                                        setWeather(data);
+                                                        setWeatherFetchedAt(new Date());
+                                                    }).catch(() => setWeatherError(true));
+                                                }
+                                            }}
+                                            className="link-button"
+                                        >Retry</button>
                                     </div>
                                 ) : (
                                     <div>Loading weather...</div>
@@ -339,38 +411,32 @@ export const Dashboard: React.FC = () => {
 
             </div>
 
+            )}
+
             {showAllCameras && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'var(--color-background)',
-                    zIndex: 50,
-                    overflowY: 'auto',
-                    padding: '2rem'
-                }}>
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="All route cameras"
+                    className="camera-modal-overlay"
+                >
+                    <button
+                        onClick={() => setShowAllCameras(false)}
+                        aria-label="Close"
+                        className="camera-modal-close"
+                    >
+                        <X size={20} />
+                    </button>
                     <div className="container">
                         <div style={{ marginBottom: '2rem' }}>
                             <button
                                 onClick={() => setShowAllCameras(false)}
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    color: '#6b7280',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                    padding: 0,
-                                    marginBottom: '1rem'
-                                }}
+                                className="camera-modal-back"
                             >
                                 ← Back to Dashboard
                             </button>
-                            <h1 style={{ fontSize: '2rem', color: 'var(--color-primary)', margin: 0 }}>All Route Cameras</h1>
-                            <p style={{ color: '#6b7280' }}>
+                            <h1 className="camera-modal-title">All Route Cameras</h1>
+                            <p className="camera-modal-subtitle">
                                 Showing {cameras.length} cameras associated with route {from} to {destination}
                             </p>
                         </div>
