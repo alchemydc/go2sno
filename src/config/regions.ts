@@ -232,11 +232,11 @@ export const REGIONS: Record<string, Region> = {
         services: {
             weather: true,
             roads: false, // Future: WSDOT/ODOT
-            avalanche: false, // Future: NWAC/Avalanche Canada
+            avalanche: true,
         },
         providers: {
             road: 'stub',
-            avalanche: 'stub',
+            avalanche: 'nwac',
         },
         cameraKeywords: {
             'snoqualmie': 20,

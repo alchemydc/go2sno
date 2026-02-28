@@ -259,4 +259,99 @@ describe('/api/avalanche', () => {
             );
         });
     });
+
+    describe('PNW region (NWAC/COAA)', () => {
+        it('should return NWAC forecast for Snoqualmie Pass', async () => {
+            mockGetForecastByZoneName.mockResolvedValue({
+                name: 'Snoqualmie Pass',
+                center_id: 'NWAC',
+                danger: 'considerable',
+                danger_level: 3,
+                travel_advice: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+                link: 'https://nwac.us/avalanche-forecast/#/snoqualmie-pass',
+                start_date: '2026-02-28T18:00:00',
+            });
+
+            const request = new Request('http://localhost/api/avalanche?region=pnw&destination=snoqualmie');
+            await GET(request);
+
+            expect(mockGetForecastByZoneName).toHaveBeenCalledWith('NWAC', 'Snoqualmie Pass');
+            expect(NextResponse.json).toHaveBeenCalledWith({
+                zoneId: 'NWAC-snoqualmie-pass',
+                zoneName: 'Snoqualmie Pass',
+                dangerRating: 3,
+                dangerRatingDisplay: 'Considerable',
+                summary: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+                issueDate: '2026-02-28T18:00:00',
+                url: 'https://nwac.us/avalanche-forecast/#/snoqualmie-pass',
+                provider: 'nwac',
+            });
+        });
+
+        it('should route Mt. Bachelor to COAA Central Cascades', async () => {
+            mockGetForecastByZoneName.mockResolvedValue({
+                name: 'Central Cascades',
+                center_id: 'COAA',
+                danger: 'low',
+                danger_level: 1,
+                travel_advice: 'Generally safe avalanche conditions.',
+                link: 'https://www.coavalanche.org/forecasts#/central-cascades',
+                start_date: '2026-02-28T18:00:00',
+            });
+
+            const request = new Request('http://localhost/api/avalanche?region=pnw&destination=bachelor');
+            await GET(request);
+
+            expect(mockGetForecastByZoneName).toHaveBeenCalledWith('COAA', 'Central Cascades');
+            expect(NextResponse.json).toHaveBeenCalledWith({
+                zoneId: 'COAA-central-cascades',
+                zoneName: 'Central Cascades',
+                dangerRating: 1,
+                dangerRatingDisplay: 'Low',
+                summary: 'Generally safe avalanche conditions.',
+                issueDate: '2026-02-28T18:00:00',
+                url: 'https://www.coavalanche.org/forecasts#/central-cascades',
+                provider: 'nwac',
+            });
+        });
+
+        it('should map Crystal Mountain to East Slopes South', async () => {
+            mockGetForecastByZoneName.mockResolvedValue({
+                name: 'East Slopes South',
+                center_id: 'NWAC',
+                danger: 'moderate',
+                danger_level: 2,
+                travel_advice: 'Heightened avalanche conditions on specific terrain features.',
+                link: 'https://nwac.us/avalanche-forecast/#/east-slopes-south',
+                start_date: '2026-02-28T18:00:00',
+            });
+
+            const request = new Request('http://localhost/api/avalanche?region=pnw&destination=crystal');
+            await GET(request);
+
+            expect(mockGetForecastByZoneName).toHaveBeenCalledWith('NWAC', 'East Slopes South');
+        });
+
+        it('should return 404 for Canadian resorts with no US coverage', async () => {
+            const request = new Request('http://localhost/api/avalanche?region=pnw&destination=whistler');
+            await GET(request);
+
+            expect(NextResponse.json).toHaveBeenCalledWith(
+                { error: 'Not found' },
+                { status: 404 }
+            );
+        });
+
+        it('should return 404 when NWAC returns null', async () => {
+            mockGetForecastByZoneName.mockResolvedValue(null);
+
+            const request = new Request('http://localhost/api/avalanche?region=pnw&destination=stevens');
+            await GET(request);
+
+            expect(NextResponse.json).toHaveBeenCalledWith(
+                { error: 'Not found' },
+                { status: 404 }
+            );
+        });
+    });
 });

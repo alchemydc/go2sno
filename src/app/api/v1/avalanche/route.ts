@@ -72,6 +72,33 @@ const UT_DESTINATION_TO_ZONE: Record<string, string> = {
     solitude: 'Salt Lake',
 };
 
+// PNW destinations mapped to { center, zone } for multi-center zone-name matching.
+// NWAC covers Washington & Northern Oregon (10 zones).
+// COAA covers Central Oregon / Mt. Bachelor (2 zones).
+// Canadian resorts (Whistler, Cypress, etc.) are not covered by US avalanche centers.
+const PNW_DESTINATION_TO_ZONE: Record<string, { center: string; zone: string } | null> = {
+    // Gateway cities → proxy to nearest pass
+    seattle: { center: 'NWAC', zone: 'Snoqualmie Pass' },
+    portland: { center: 'NWAC', zone: 'Mt Hood' },
+    // NWAC zones
+    crystal: { center: 'NWAC', zone: 'East Slopes South' },
+    snoqualmie: { center: 'NWAC', zone: 'Snoqualmie Pass' },
+    stevens: { center: 'NWAC', zone: 'Stevens Pass' },
+    mthood: { center: 'NWAC', zone: 'Mt Hood' },
+    whitepass: { center: 'NWAC', zone: 'East Slopes Central' },
+    missionridge: { center: 'NWAC', zone: 'East Slopes North' },
+    // COAA (Central Oregon)
+    bachelor: { center: 'COAA', zone: 'Central Cascades' },
+    // Canadian resorts — no US avalanche coverage
+    whistler: null,
+    cypress: null,
+    sunpeaks: null,
+    revelstoke: null,
+    red: null,
+    panorama: null,
+    vancouver: null,
+};
+
 async function getCoForecast(dest: string) {
     const destKey = dest.toLowerCase().replace(/\s+/g, '');
     const coords = CO_DESTINATION_COORDS[destKey];
@@ -154,6 +181,36 @@ async function getUtahForecast(dest: string) {
     };
 }
 
+async function getPnwForecast(dest: string) {
+    const destKey = dest.toLowerCase().replace(/\s+/g, '');
+    const mapping = PNW_DESTINATION_TO_ZONE[destKey];
+
+    // Explicitly null = Canadian resort with no US coverage
+    if (mapping === null) return null;
+
+    // Unknown destination defaults to Snoqualmie Pass (central Cascades)
+    const { center, zone } = mapping || { center: 'NWAC', zone: 'Snoqualmie Pass' };
+
+    const zoneData = await avyOrgClient.getForecastByZoneName(center, zone);
+    if (!zoneData) return null;
+
+    const dangerLevel = zoneData.danger_level >= 1 ? zoneData.danger_level : 0;
+    const dangerDisplay = zoneData.danger
+        ? zoneData.danger.charAt(0).toUpperCase() + zoneData.danger.slice(1)
+        : 'No Rating';
+
+    return {
+        zoneId: `${center}-${zone.toLowerCase().replace(/\s+/g, '-')}`,
+        zoneName: zone,
+        dangerRating: dangerLevel,
+        dangerRatingDisplay: dangerDisplay,
+        summary: zoneData.travel_advice || 'No summary available.',
+        issueDate: zoneData.start_date,
+        url: zoneData.link,
+        provider: 'nwac',
+    };
+}
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const region = searchParams.get('region');
@@ -171,6 +228,8 @@ export async function GET(request: Request) {
             result = await getTahoeForecast(destination);
         } else if (region === 'ut') {
             result = await getUtahForecast(destination);
+        } else if (region === 'pnw') {
+            result = await getPnwForecast(destination);
         } else {
             result = {
                 zoneName: 'Unknown Zone',
