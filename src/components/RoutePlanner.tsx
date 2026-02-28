@@ -456,10 +456,10 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
     return (
         <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Navigation size={20} color="var(--color-primary)" style={{ marginRight: '0.5rem' }} />
-                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Route Planner</h2>
+                    <Navigation size={18} color="var(--color-primary)" style={{ marginRight: '0.4rem' }} />
+                    <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Route Planner</h2>
                 </div>
 
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
@@ -468,8 +468,6 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                         onChange={(e) => onRegionChange(e.target.value)}
                         style={{
                             padding: '0.25rem 0.5rem',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid #ccc',
                             fontSize: '0.875rem'
                         }}
                     >
@@ -489,7 +487,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     <select
                         value={from}
                         onChange={(e) => onFromChange(e.target.value)}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
+                        style={{ width: '100%', padding: '0.5rem' }}
                         disabled={!selectedRegionId}
                     >
                         <option value="" disabled>Select Origin</option>
@@ -520,7 +518,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                     <select
                         value={destination}
                         onChange={(e) => onDestinationChange(e.target.value)}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #ccc' }}
+                        style={{ width: '100%', padding: '0.5rem' }}
                         disabled={!selectedRegionId}
                     >
                         <option value="" disabled>Select Destination</option>
@@ -556,8 +554,8 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             )}
 
             {from && destination && (
-                <div style={{ minHeight: '400px', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginTop: '1rem' }}>
-                    <div ref={mapContainer} style={{ width: '100%', height: '400px' }} />
+                <div style={{ minHeight: '300px', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginTop: '0.75rem' }}>
+                    <div ref={mapContainer} style={{ width: '100%', height: '300px' }} />
                 </div>
             )}
         </div>

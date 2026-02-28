@@ -253,7 +253,7 @@ export const Dashboard: React.FC = () => {
         <div className="container">
             <header className="dashboard-header">
                 <div className="dashboard-header-left">
-                    <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+                    <div style={{ position: 'relative', width: '48px', height: '48px' }}>
                         <Image
                             src="/logo.jpg"
                             alt="go2sno logo"
@@ -262,10 +262,7 @@ export const Dashboard: React.FC = () => {
                             priority
                         />
                     </div>
-                    <div>
-
-                        <p className="dashboard-tagline">play in the snow</p>
-                    </div>
+                    <p className="dashboard-tagline">play in the snow</p>
                 </div>
                 <div className="dashboard-header-right">
                     <ThemeToggle />
