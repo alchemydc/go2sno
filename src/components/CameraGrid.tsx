@@ -1,15 +1,16 @@
 import React from 'react';
 import type { Camera } from '../types/domain';
-import { Video } from 'lucide-react';
+import { Video, AlertTriangle } from 'lucide-react';
 import { CameraCard } from './CameraCard';
 
 interface CameraGridProps {
     cameras: Camera[];
     loading?: boolean;
+    error?: boolean;
 }
 
-export const CameraGrid: React.FC<CameraGridProps> = ({ cameras, loading = false }) => {
-    if ((!cameras || cameras.length === 0) && !loading) {
+export const CameraGrid: React.FC<CameraGridProps> = ({ cameras, loading = false, error = false }) => {
+    if ((!cameras || cameras.length === 0) && !loading && !error) {
         return null; // Don't render if no cameras and not loading
     }
 
@@ -31,6 +32,15 @@ export const CameraGrid: React.FC<CameraGridProps> = ({ cameras, loading = false
                         height: '16px'
                     }}></div>
                     Loading cameras on route...
+                </div>
+            ) : error ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', color: 'var(--color-text-muted)', gap: '0.5rem' }}>
+                    <AlertTriangle size={16} />
+                    Unable to load cameras
+                </div>
+            ) : cameras.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                    No cameras found on this route
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>

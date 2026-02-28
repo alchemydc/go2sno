@@ -533,31 +533,24 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 </div>
             </div>
 
-            {/* Stats Card */}
             {from && destination && (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '1rem',
-                    marginBottom: '1rem',
-                    padding: '1rem',
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: 'var(--radius-md)',
-                    textAlign: 'center'
-                }}>
+                <div className="route-stats">
                     <div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>{stats.travelTime}</div>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Travel Time</div>
+                        <div className="route-stat-value">{stats.travelTime}</div>
+                        <div className="route-stat-label">Travel Time</div>
+                        <div className="route-stat-sublabel">current with traffic</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: stats.delay === 'None' ? '#059669' : '#dc2626' }}>{stats.delay}</div>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>Delay</div>
+                        <div className={`route-stat-value ${stats.delay === 'None' ? 'route-stat-ok' : 'route-stat-warn'}`}>{stats.delay}</div>
+                        <div className="route-stat-label">Delay</div>
+                        <div className="route-stat-sublabel">vs. normal</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>
+                        <div className="route-stat-value route-stat-snow">
                             {snowForecast !== undefined ? `${Math.round(snowForecast)}"` : '-'}
                         </div>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>New Snow</div>
+                        <div className="route-stat-label">New Snow</div>
+                        <div className="route-stat-sublabel">past 24h</div>
                     </div>
                 </div>
             )}
