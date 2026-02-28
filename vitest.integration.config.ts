@@ -8,7 +8,8 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
         setupFiles: './src/test-setup.ts',
-        exclude: ['src/__tests__/*-region.test.ts', 'node_modules/**'],
+        include: ['src/__tests__/*-region.test.ts'],
+        testTimeout: 30000,
         alias: {
             '@': resolve(__dirname, './src'),
         },
