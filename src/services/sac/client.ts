@@ -1,4 +1,4 @@
-import { AvalancheOrgMapLayerResponse, AvalancheOrgZoneProperties } from './types';
+import { AvalancheOrgMapLayerResponse, AvalancheOrgFeature, AvalancheOrgZoneProperties } from './types';
 import { logger } from '../../utils/logger';
 
 const AVALANCHE_ORG_MAP_LAYER_URL = 'https://api.avalanche.org/v2/public/products/map-layer';
@@ -11,6 +11,7 @@ const AVALANCHE_ORG_MAP_LAYER_URL = 'https://api.avalanche.org/v2/public/product
  * Supports any center on the Avalanche.org platform including:
  * - Single-zone centers (SAC, ESAC, BAC) — use getForecastByCenter()
  * - Multi-zone centers (UAC with 9 zones) — use getForecastByZoneName()
+ * - Coordinate-based lookup (CAIC with 12 unnamed zones) — use getForecastByCoordinates()
  */
 export class AvalancheOrgClient {
     private cache: { data: AvalancheOrgMapLayerResponse; fetchedAt: number } | null = null;
@@ -51,6 +52,80 @@ export class AvalancheOrgClient {
         }
 
         return feature.properties;
+    }
+
+    /**
+     * Fetch the current forecast for the zone containing a given coordinate.
+     * Use this for centers like CAIC where zones share the same generic name
+     * and can only be distinguished by their polygon geometry.
+     */
+    async getForecastByCoordinates(centerId: string, lon: number, lat: number): Promise<AvalancheOrgZoneProperties | null> {
+        const features = await this.fetchMapLayer();
+        const candidates = features.features.filter(
+            f => f.properties.center_id === centerId
+        );
+
+        if (candidates.length === 0) {
+            logger.warn(`No forecast zones found for center_id: ${centerId}`);
+            return null;
+        }
+
+        const match = candidates.find(f => this.pointInFeature(lon, lat, f));
+
+        if (!match) {
+            logger.warn(`No zone polygon contains point [${lon}, ${lat}] for center: ${centerId}`);
+            return null;
+        }
+
+        return match.properties;
+    }
+
+    /**
+     * Test if a point is inside a Feature's polygon geometry.
+     * Handles both Polygon and MultiPolygon types.
+     */
+    private pointInFeature(lon: number, lat: number, feature: AvalancheOrgFeature): boolean {
+        const geom = feature.geometry;
+        if (geom.type === 'Polygon') {
+            // Polygon coordinates: [ring][point][lon,lat]
+            return this.pointInPolygon(lon, lat, geom.coordinates as number[][][]);
+        } else if (geom.type === 'MultiPolygon') {
+            // MultiPolygon coordinates: [polygon][ring][point][lon,lat]
+            return (geom.coordinates as number[][][][]).some(
+                polygon => this.pointInPolygon(lon, lat, polygon)
+            );
+        }
+        return false;
+    }
+
+    /**
+     * Ray-casting point-in-polygon test against a single polygon (with optional holes).
+     * Tests against the outer ring (index 0); a point inside a hole ring is excluded.
+     */
+    private pointInPolygon(lon: number, lat: number, rings: number[][][]): boolean {
+        // Must be inside outer ring
+        if (!this.pointInRing(lon, lat, rings[0])) return false;
+        // Must not be inside any hole ring
+        for (let i = 1; i < rings.length; i++) {
+            if (this.pointInRing(lon, lat, rings[i])) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Ray-casting algorithm: count edge crossings to determine inside/outside.
+     */
+    private pointInRing(px: number, py: number, ring: number[][]): boolean {
+        let inside = false;
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+            const xi = ring[i][0], yi = ring[i][1];
+            const xj = ring[j][0], yj = ring[j][1];
+            if ((yi > py) !== (yj > py) &&
+                px < (xj - xi) * (py - yi) / (yj - yi) + xi) {
+                inside = !inside;
+            }
+        }
+        return inside;
     }
 
     private async fetchMapLayer(): Promise<AvalancheOrgMapLayerResponse> {

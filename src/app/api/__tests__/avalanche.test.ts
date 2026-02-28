@@ -2,18 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../v1/avalanche/route';
 import { NextResponse } from 'next/server';
 
-// Mock the entire caic module before importing
-const mockGetForecastByZoneSlug = vi.fn();
+// Mock the AvalancheOrgClient (now used for all regions including CO)
 const mockGetForecastByCenter = vi.fn();
 const mockGetForecastByZoneName = vi.fn();
-
-vi.mock('../../../services/caic/client', () => ({
-    CaicClient: class {
-        getForecastByZoneSlug(...args: any[]) {
-            return mockGetForecastByZoneSlug(...args);
-        }
-    }
-}));
+const mockGetForecastByCoordinates = vi.fn();
 
 vi.mock('../../../services/sac/client', () => ({
     AvalancheOrgClient: class {
@@ -23,6 +15,9 @@ vi.mock('../../../services/sac/client', () => ({
         getForecastByZoneName(...args: any[]) {
             return mockGetForecastByZoneName(...args);
         }
+        getForecastByCoordinates(...args: any[]) {
+            return mockGetForecastByCoordinates(...args);
+        }
     },
     SacClient: class {
         getForecastByCenter(...args: any[]) {
@@ -30,6 +25,9 @@ vi.mock('../../../services/sac/client', () => ({
         }
         getForecastByZoneName(...args: any[]) {
             return mockGetForecastByZoneName(...args);
+        }
+        getForecastByCoordinates(...args: any[]) {
+            return mockGetForecastByCoordinates(...args);
         }
     }
 }));
@@ -63,7 +61,7 @@ describe('/api/avalanche', () => {
     // ...
 
     it('should return 404 if no forecast is found', async () => {
-        mockGetForecastByZoneSlug.mockResolvedValue(null);
+        mockGetForecastByCoordinates.mockResolvedValue(null);
 
         const request = new Request('http://localhost/api/avalanche?destination=frisco');
 
@@ -75,8 +73,8 @@ describe('/api/avalanche', () => {
         );
     });
 
-    it('should return 500 on CAIC API error', async () => {
-        mockGetForecastByZoneSlug.mockRejectedValue(new Error('API error'));
+    it('should return 500 on API error', async () => {
+        mockGetForecastByCoordinates.mockRejectedValue(new Error('API error'));
 
         const request = new Request('http://localhost/api/avalanche?destination=frisco');
 
@@ -88,33 +86,50 @@ describe('/api/avalanche', () => {
         );
     });
 
-    it('should map destination to correct zone slug', async () => {
-        mockGetForecastByZoneSlug.mockResolvedValue({
-            type: 'avalancheforecast',
-            areaId: 'test-area-id',
-            zoneName: 'Test Zone',
-            issueDateTime: '2025-12-05T10:00:00Z',
-            dangerRatings: { days: [{ alp: 'Considerable', tln: 'Moderate', btl: 'Low' }] },
-            avalancheSummary: { days: [{ content: 'Test avalanche summary' }] },
-            url: 'https://avalanche.state.co.us/forecasts/backcountry-avalanche/test-area-id'
+    it('should use coordinate-based lookup for CO destinations', async () => {
+        mockGetForecastByCoordinates.mockResolvedValue({
+            name: 'CAIC zone',
+            center_id: 'CAIC',
+            danger: 'considerable',
+            danger_level: 3,
+            travel_advice: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+            link: 'https://avalanche.state.co.us/',
+            start_date: '2026-02-28T23:30:00',
         });
 
         const request = new Request('http://localhost/api/avalanche?destination=aspen');
         await GET(request);
 
-        expect(mockGetForecastByZoneSlug).toHaveBeenCalledWith('aspen', expect.any(String));
-        expect(NextResponse.json).toHaveBeenCalledWith(
-            {
-                zoneId: 'test-area-id',
-                zoneName: 'Aspen',
-                dangerRating: 3, // Considerable
-                dangerRatingDisplay: 'Considerable',
-                summary: 'Test avalanche summary',
-                issueDate: '2025-12-05T10:00:00Z',
-                url: 'https://avalanche.state.co.us/forecasts/backcountry-avalanche/aspen',
-                provider: 'caic'
-            }
-        );
+        // Aspen coordinates: [-106.8175, 39.1911]
+        expect(mockGetForecastByCoordinates).toHaveBeenCalledWith('CAIC', -106.8175, 39.1911);
+        expect(NextResponse.json).toHaveBeenCalledWith({
+            zoneId: 'CAIC-aspen',
+            zoneName: 'Aspen',
+            dangerRating: 3,
+            dangerRatingDisplay: 'Considerable',
+            summary: 'Dangerous avalanche conditions. Careful snowpack evaluation essential.',
+            issueDate: '2026-02-28T23:30:00',
+            url: 'https://avalanche.state.co.us/',
+            provider: 'caic',
+        });
+    });
+
+    it('should proxy gateway cities to nearby resort coordinates', async () => {
+        mockGetForecastByCoordinates.mockResolvedValue({
+            name: 'CAIC zone',
+            center_id: 'CAIC',
+            danger: 'moderate',
+            danger_level: 2,
+            travel_advice: 'Heightened avalanche conditions.',
+            link: 'https://avalanche.state.co.us/',
+            start_date: '2026-02-28T23:30:00',
+        });
+
+        const request = new Request('http://localhost/api/avalanche?destination=denver');
+        await GET(request);
+
+        // Denver proxies to Eldora coordinates: [-105.5835, 39.9382]
+        expect(mockGetForecastByCoordinates).toHaveBeenCalledWith('CAIC', -105.5835, 39.9382);
     });
 
     describe('Tahoe region (SAC)', () => {
