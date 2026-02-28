@@ -29,7 +29,7 @@ export interface Region {
     // Service Provider Configuration
     providers: {
         road: 'cdot' | 'caltrans' | 'udot' | 'stub';
-        avalanche: 'caic' | 'uac' | 'sac' | 'stub';
+        avalanche: 'caic' | 'uac' | 'sac' | 'nwac' | 'stub';
     };
 
     // Priority keywords for camera sorting in this region
@@ -232,11 +232,11 @@ export const REGIONS: Record<string, Region> = {
         services: {
             weather: true,
             roads: false, // Future: WSDOT/ODOT
-            avalanche: false, // Future: NWAC/Avalanche Canada
+            avalanche: true,
         },
         providers: {
             road: 'stub',
-            avalanche: 'stub',
+            avalanche: 'nwac',
         },
         cameraKeywords: {
             'snoqualmie': 20,

@@ -19,7 +19,8 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
     *   *Colorado:* CAIC via Avalanche.org map-layer API with point-in-polygon zone matching.
     *   *Utah:* UAC via Avalanche.org map-layer API (zone-name matching).
     *   *Tahoe:* SAC & ESAC via Avalanche.org map-layer API (center-id matching). Mammoth routes to ESAC.
-    *   All three use the unified `AvalancheOrgClient` — no brittle zone-ID mappings.
+    *   *PNW:* NWAC & COAA via Avalanche.org map-layer API (zone-name matching). Canadian resorts unsupported.
+    *   All four use the unified `AvalancheOrgClient` — no brittle zone-ID mappings.
 
 ## Region Status
 
@@ -29,7 +30,7 @@ A real-time dashboard for snow-philes of all stripes to check travel times, road
 | Utah | ✅ Epic + Ikon + Independent | 🔲 UDOT (stub) | ✅ UAC (via Avalanche.org) | Road service pending |
 | Tahoe | ✅ Epic + Ikon + Independent | ✅ Caltrans | ✅ SAC + ESAC (via Avalanche.org) | |
 | SoCal | ✅ Epic + Ikon + Independent | ✅ Caltrans | — | No avalanche center |
-| PNW | ✅ Epic + Ikon + Independent | 🔲 Stub | 🔲 Stub | Resort status works |
+| PNW | ✅ Epic + Ikon + Independent | 🔲 Stub | ✅ NWAC + COAA (via Avalanche.org) | Canadian resorts unsupported |
 | Japan | ✅ Epic + Ikon | 🔲 Stub | 🔲 Stub | Resort status works |
 | New Zealand | ✅ Ikon | 🔲 Stub | 🔲 Stub | Resort status works |
 | East Coast | ✅ Epic + Ikon + Independent | 🔲 Stub | 🔲 Stub | Resort status works |
@@ -51,7 +52,7 @@ This project uses a modern, extensible architecture designed to support multiple
 2.  **Service Factory (`src/services/factory.ts`)**:
     - A central factory instantiates the correct services based on the selected region's `providers` config.
     - **Road Service:** Returns `IRoadService` — `CdotRoadService` (CO), `CaltransRoadService` (Tahoe/SoCal), `UdotRoadService` (UT), or `StubRoadService`.
-    - **Avalanche Service:** Returns `IAvalancheService` — `ColoradoAvalancheService` (CO), `UtahAvalancheService` (UT), `SierraAvalancheService` (Tahoe), or `StubAvalancheService`. All three live services delegate to the unified `AvalancheOrgClient`.
+    - **Avalanche Service:** Returns `IAvalancheService` — `ColoradoAvalancheService` (CO), `UtahAvalancheService` (UT), `SierraAvalancheService` (Tahoe), `NorthwestAvalancheService` (PNW), or `StubAvalancheService`. All four live services delegate to the unified `AvalancheOrgClient`.
 
 3.  **Unified Resort Data (`src/services/snow-report/`)**:
     - **`ResortStatusManager`**: Orchestrates multi-provider data fetching with fallback.
